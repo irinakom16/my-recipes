@@ -1659,15 +1659,15 @@ function Field({ label, children }) {
   );
 }
 
-function StatCard({ icon, label, value }) {
+function StatCard({ icon, label, value, onClick }) {
   return (
-    <div className="stat-card">
+    <button type="button" className="stat-card" onClick={onClick}>
       <div className="stat-icon">{icon}</div>
       <div>
         <p>{label}</p>
         <strong>{value}</strong>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -1699,43 +1699,112 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
     : null;
 
   return (
-    <article className="recipe-paper-card">
-      <div className="recipe-paper-header">
+    <article className="recipe-compact-page">
+      <div className="recipe-compact-header">
         <div>
           <h3>{recipe.title}</h3>
-          {recipe.description && <p className="recipe-paper-description">{recipe.description}</p>}
+          {recipe.description && <p>{recipe.description}</p>}
         </div>
 
         <div className="recipe-actions">
           <button onClick={onEdit} className="icon-button edit-button" title="Редактировать рецепт">
-            <Pencil size={19} />
+            <Pencil size={17} />
           </button>
 
           <button onClick={onDelete} className="icon-button" title="Удалить рецепт">
-            <Trash2 size={20} />
+            <Trash2 size={17} />
           </button>
         </div>
       </div>
 
-      <div className="recipe-paper-meta">
+      <div className="recipe-compact-meta">
         <span>{getMealCategoryLabel(recipe.mealCategory || "any")}</span>
         <span>{getDishTypeLabel(recipe.dishType || "any")}</span>
-        {recipe.servings && <span>На {recipe.servings} порции</span>}
+        {recipe.servings && <span>{recipe.servings} порц.</span>}
         {recipe.time && <span>{recipe.time}</span>}
-        <span>Совпадение {recipe.score}%</span>
       </div>
 
-      {recipe.image && (
-        <div className="recipe-photo">
-          <img src={recipe.image} alt={recipe.title} />
+      <div className="recipe-compact-main">
+        <div className="recipe-compact-photo">
+          {recipe.image ? <img src={recipe.image} alt={recipe.title} /> : <ChefHat size={38} />}
+        </div>
+
+        <div className="recipe-compact-ingredients">
+          <h4>Ингредиенты</h4>
+
+          <ul>
+            {recipe.ingredients.map((item, index) => {
+              const ingredientName = getIngredientName(item);
+              const isAvailable = recipe.availableKeys?.includes(ingredientName);
+              const status = getIngredientStatus(item);
+              const isSelected = selectedIngredientIndex === index;
+
+              return (
+                <li key={`${ingredientName}-${index}`}>
+                  <button
+                    type="button"
+                    className={`recipe-ingredient-line ${isSelected ? "active" : ""} ${status.ok ? "recognized" : "needs-attention"}`}
+                    title={status.reason}
+                    onClick={() => setSelectedIngredientIndex(isSelected ? null : index)}
+                  >
+                    <span>{item.name}</span>
+                    <b>{Number(item.amount?.toFixed?.(2) ?? item.amount)} {item.unit}</b>
+                    {!status.ok && <em>!</em>}
+                    {status.ok && !isAvailable && <small>купить</small>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+
+      {selectedIngredient && (
+        <div className="ingredient-detail-card compact">
+          <div className="ingredient-detail-header">
+            <div>
+              <h4>{selectedIngredient.name}</h4>
+              <p>{Number(selectedIngredient.amount?.toFixed?.(2) ?? selectedIngredient.amount)} {selectedIngredient.unit}</p>
+            </div>
+
+            <button type="button" onClick={() => setSelectedIngredientIndex(null)}>×</button>
+          </div>
+
+          {selectedIngredientNutrition?.known ? (
+            <>
+              <div className="ingredient-detail-macros">
+                <div><strong>{selectedIngredientNutrition.nutrients.calories}</strong><span>ккал</span></div>
+                <div><strong>{selectedIngredientNutrition.nutrients.protein}</strong><span>белки</span></div>
+                <div><strong>{selectedIngredientNutrition.nutrients.fat}</strong><span>жиры</span></div>
+                <div><strong>{selectedIngredientNutrition.nutrients.carbs}</strong><span>углеводы</span></div>
+              </div>
+
+              <details className="ingredient-detail-nutrients">
+                <summary>
+                  <span>Нутриенты</span>
+                  <ChevronDown size={16} />
+                </summary>
+
+                <div className="micro-grid">
+                  {Object.entries(selectedIngredientNutrition.nutrients)
+                    .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
+                    .map(([key, value]) => (
+                      <div key={key}>
+                        <span>{NUTRIENT_LABELS[key]}</span>
+                        <strong>{value}</strong>
+                      </div>
+                    ))}
+                </div>
+              </details>
+            </>
+          ) : (
+            <p className="unknown-nutrition">Нет данных по нутриентам.</p>
+          )}
         </div>
       )}
 
-      <div className="nutrition-summary prominent">
-        <div className="nutrition-heading">
-          <h4>Пищевая ценность на порцию</h4>
-          <span>Расчёт по ингредиентам и граммовкам</span>
-        </div>
+      <details className="recipe-compact-nutrition">
+        <summary>КБЖУ и нутриенты на порцию</summary>
 
         <div className="macro-grid macro-grid-big">
           <NutritionNumber title="Калории" value={portionNutrition.calories} unit="ккал" accent="calories" />
@@ -1744,137 +1813,22 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
           <NutritionNumber title="Углеводы" value={portionNutrition.carbs} unit="г" />
         </div>
 
-        <details className="micronutrients">
-          <summary>
-            <span>Витамины, минералы и прочие нутриенты на порцию</span>
-            <ChevronDown size={18} />
-          </summary>
-
-          <div className="micro-grid">
-            {Object.entries(portionNutrition)
-              .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
-              .map(([key, value]) => (
-                <div key={key}>
-                  <span>{NUTRIENT_LABELS[key]}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-          </div>
-        </details>
-      </div>
-
-      <div className="recipe-paper-section">
-        <h4>Ингредиенты:</h4>
-
-        <ul className="simple-ingredient-list">
-          {recipe.ingredients.map((item, index) => {
-            const ingredientName = getIngredientName(item);
-            const isAvailable = recipe.availableKeys?.includes(ingredientName);
-            const isSelected = selectedIngredientIndex === index;
-            const status = getIngredientStatus(item);
-
-            return (
-              <li key={`${ingredientName}-${index}`}>
-                <button
-                  type="button"
-                  className={`simple-ingredient-button ${isSelected ? "active" : ""} ${status.ok ? "recognized" : "needs-attention"}`}
-                  title={status.reason}
-                  onClick={() =>
-                    setSelectedIngredientIndex(isSelected ? null : index)
-                  }
-                >
-                  <span>
-                    <span className="ingredient-name-text">{item.name}</span>
-                    {!status.ok && <em>проверь</em>}
-                    {status.ok && !isAvailable && <em className="buy-tag">нужно купить</em>}
-                  </span>
-                  <b>{Number(item.amount?.toFixed?.(2) ?? item.amount)} {item.unit}</b>
-                </button>
-
-                {!status.ok && (
-                  <p className="ingredient-warning">{status.reason}</p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-
-        {selectedIngredient && (
-          <div className="ingredient-detail-card">
-            <div className="ingredient-detail-header">
-              <div>
-                <h4>{selectedIngredient.name}</h4>
-                <p>{Number(selectedIngredient.amount.toFixed?.(2) ?? selectedIngredient.amount)} {selectedIngredient.unit}</p>
+        <div className="micro-grid">
+          {Object.entries(portionNutrition)
+            .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
+            .map(([key, value]) => (
+              <div key={key}>
+                <span>{NUTRIENT_LABELS[key]}</span>
+                <strong>{value}</strong>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedIngredientIndex(null)}
-                title="Закрыть карточку ингредиента"
-              >
-                ×
-              </button>
-            </div>
-
-            {selectedIngredientNutrition?.known ? (
-              <>
-                <div className="ingredient-detail-macros">
-                  <div>
-                    <strong>{selectedIngredientNutrition.nutrients.calories}</strong>
-                    <span>ккал</span>
-                  </div>
-                  <div>
-                    <strong>{selectedIngredientNutrition.nutrients.protein}</strong>
-                    <span>белки, г</span>
-                  </div>
-                  <div>
-                    <strong>{selectedIngredientNutrition.nutrients.fat}</strong>
-                    <span>жиры, г</span>
-                  </div>
-                  <div>
-                    <strong>{selectedIngredientNutrition.nutrients.carbs}</strong>
-                    <span>углеводы, г</span>
-                  </div>
-                </div>
-
-                <details className="ingredient-detail-nutrients">
-                  <summary>
-                    <span>Витамины, минералы и прочие нутриенты</span>
-                    <ChevronDown size={17} />
-                  </summary>
-
-                  <div className="micro-grid">
-                    {Object.entries(selectedIngredientNutrition.nutrients)
-                      .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
-                      .map(([key, value]) => (
-                        <div key={key}>
-                          <span>{NUTRIENT_LABELS[key]}</span>
-                          <strong>{value}</strong>
-                        </div>
-                      ))}
-                  </div>
-                </details>
-              </>
-            ) : (
-              <p className="unknown-nutrition">
-                Для этого продукта пока нет данных по нутриентам в справочнике.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {recipe.missing?.length > 0 && (
-        <div className="recipe-paper-note">
-          Не хватает: <strong>{recipe.missing.map((item) => formatIngredient(item)).join(", ")}</strong>
+            ))}
         </div>
-      )}
+      </details>
 
       {steps.length > 0 && (
-        <div className="recipe-paper-section">
-          <h4>Как готовить:</h4>
-
-          <ol className="recipe-paper-steps">
+        <div className="recipe-compact-steps">
+          <h4>Приготовление</h4>
+          <ol>
             {steps.map((step, index) => (
               <li key={index}>{step.replace(/^\d+\.\s*/, "")}</li>
             ))}
@@ -1942,6 +1896,8 @@ export default function App() {
     vitaminA: "",
     folate: "",
   });
+
+  const [checkedShoppingItems, setCheckedShoppingItems] = useState({});
 
   const [form, setForm] = useState({
     title: "",
@@ -3037,6 +2993,67 @@ export default function App() {
     setIngredientInput("");
   }
 
+  function updatePantryItem(indexToUpdate, field, value) {
+    setPantry((current) =>
+      current.map((item, index) => {
+        if (index !== indexToUpdate) return item;
+
+        if (field === "amount") {
+          return {
+            ...item,
+            amount: Number(value) || 0,
+          };
+        }
+
+        if (field === "unit") {
+          return {
+            ...item,
+            unit: normalizeUnit(value),
+          };
+        }
+
+        return {
+          ...item,
+          [field]: value,
+        };
+      })
+    );
+  }
+
+  function getShoppingItemKey(item) {
+    return `${item.name}|${item.unit}`;
+  }
+
+  function toggleShoppingItem(item) {
+    const key = getShoppingItemKey(item);
+
+    setCheckedShoppingItems((current) => ({
+      ...current,
+      [key]: !current[key],
+    }));
+  }
+
+  function addBoughtItemsToPantry() {
+    const selected = shoppingList.filter((item) => checkedShoppingItems[getShoppingItemKey(item)]);
+
+    if (!selected.length) {
+      alert("Отметь продукты, которые куплены.");
+      return;
+    }
+
+    setPantry((current) => [
+      ...current,
+      ...selected.map((item) => ({
+        name: item.name,
+        amount: Number(item.buyAmount.toFixed(2)),
+        unit: item.unit,
+      })),
+    ]);
+
+    setCheckedShoppingItems({});
+    setActiveTab("pantry");
+  }
+
   function removePantryItem(indexToRemove) {
     setPantry((current) => current.filter((_, index) => index !== indexToRemove));
   }
@@ -3165,6 +3182,10 @@ export default function App() {
     return recipes.find((recipe) => recipe.id === id)?.title || "";
   }
 
+  function getRecipeById(id) {
+    return recipes.find((recipe) => recipe.id === id) || null;
+  }
+
   function openRecipeFromMenu(recipeId) {
     if (!recipeId) return;
     setSelectedRecipeId(recipeId);
@@ -3225,11 +3246,11 @@ export default function App() {
           </div>
         </header>
 
-        <section className="stats-grid">
-          <StatCard icon={<ChefHat />} label="Рецептов" value={recipes.length} />
-          <StatCard icon={<Carrot />} label="Продуктов дома" value={pantry.length} />
-          <StatCard icon={<CalendarDays />} label="Блюд в меню" value={Object.values(menu).flatMap((day) => Object.values(day)).filter(Boolean).length} />
-          <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} />
+        <section className="stats-grid quick-menu-grid">
+          <StatCard icon={<ChefHat />} label="Рецептов" value={recipes.length} onClick={() => setActiveTab("recipes")} />
+          <StatCard icon={<Carrot />} label="Продуктов дома" value={pantry.length} onClick={() => setActiveTab("pantry")} />
+          <StatCard icon={<CalendarDays />} label="Блюд в меню" value={Object.values(menu).flatMap((day) => Object.values(day)).filter(Boolean).length} onClick={() => setActiveTab("menu")} />
+          <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} onClick={() => setActiveTab("shopping")} />
         </section>
 
         <nav className="tabs">
@@ -3446,43 +3467,8 @@ export default function App() {
                     Вставить
                   </Button>
                 </form>
-
-                <div className="nutrition-search-row">
-                  <button
-                    type="button"
-                    className="nutrition-lookup-button"
-                    onClick={() => searchNutritionByName(recipeIngredientForm.name)}
-                  >
-                    <Database size={18} />
-                    Найти КБЖУ для ингредиента
-                  </button>
-                </div>
               </div>
-
-              {(activeTab === "add" && (nutritionSearchStatus || nutritionSuggestions.length > 0)) && (
-                <div className="nutrition-suggestions-box">
-                  {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
-
-                  {nutritionSuggestions.length > 0 && (
-                    <div className="nutrition-suggestions-list">
-                      {nutritionSuggestions.map((suggestion) => (
-                        <button
-                          key={suggestion.id}
-                          type="button"
-                          onClick={() => saveNutritionSuggestion(suggestion.name, suggestion.nutrition)}
-                        >
-                          <strong>{suggestion.name}</strong>
-                          <span>
-                            {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="ingredients-form-grid">
+<div className="ingredients-form-grid">
                 <Field label="Ингредиенты построчно с количеством">
                   <textarea className="input textarea-small" value={form.ingredients} onChange={(event) => setForm({ ...form, ingredients: event.target.value })} placeholder={`Свекла 1 шт\nОгурец 1 шт\nАпельсин 1 шт\nРукола 50 г\nБрокколи 100 г\nОливковое масло 1 ст.л`} />
                 </Field>
@@ -3620,17 +3606,6 @@ export default function App() {
               </Button>
             </form>
 
-            <div className="nutrition-search-row">
-              <button
-                type="button"
-                className="nutrition-lookup-button"
-                onClick={() => searchNutritionByName(pantryForm.name)}
-              >
-                <Database size={18} />
-                Найти КБЖУ для продукта
-              </button>
-            </div>
-
             <details className="quick-add">
               <summary>Быстро добавить списком</summary>
               <div className="add-row">
@@ -3641,41 +3616,38 @@ export default function App() {
                 </Button>
               </div>
             </details>
-
-            {(nutritionSearchStatus || nutritionSuggestions.length > 0) && (
-              <div className="nutrition-suggestions-box">
-                {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
-
-                {nutritionSuggestions.length > 0 && (
-                  <div className="nutrition-suggestions-list">
-                    {nutritionSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.id}
-                        type="button"
-                        onClick={() => saveNutritionSuggestion(suggestion.name, suggestion.nutrition)}
-                      >
-                        <strong>{suggestion.name}</strong>
-                        <span>
-                          {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="pantry-list">
+<div className="pantry-list compact-pantry-list">
               {pantry.map((item, index) => {
                 const status = getIngredientStatus(item);
 
                 return (
-                  <div key={`${getIngredientName(item)}-${index}`} className={`pantry-item ${status.ok ? "recognized" : "needs-attention"}`}>
-                    <div>
-                      <strong>{item.name}</strong>
-                      <span>{Number(item.amount?.toFixed?.(2) ?? item.amount)} {item.unit}</span>
-                      {!status.ok && <small>{status.reason}</small>}
-                    </div>
+                  <div key={`${getIngredientName(item)}-${index}`} className={`pantry-item compact ${status.ok ? "recognized" : "needs-attention"}`}>
+                    <input
+                      className="input"
+                      value={item.name}
+                      onChange={(event) => updatePantryItem(index, "name", event.target.value)}
+                    />
+
+                    <input
+                      className="input"
+                      type="number"
+                      step="0.1"
+                      value={item.amount}
+                      onChange={(event) => updatePantryItem(index, "amount", event.target.value)}
+                    />
+
+                    <select
+                      className="input"
+                      value={item.unit}
+                      onChange={(event) => updatePantryItem(index, "unit", event.target.value)}
+                    >
+                      {UNIT_OPTIONS.map((unit) => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
+
+                    {!status.ok && <small>{status.reason}</small>}
+
                     <button onClick={() => removePantryItem(index)} title="Удалить продукт">×</button>
                   </div>
                 );
@@ -3714,7 +3686,7 @@ export default function App() {
 
               <button type="button" className="fill-week-button" onClick={autoFillMenu}>
                 <Sparkles size={17} />
-                Заполнить выбранную неделю
+                Заполнить
               </button>
             </div>
 
@@ -3772,10 +3744,15 @@ export default function App() {
                           {mealPlan.recipeId && (
                             <button
                               type="button"
-                              className="open-menu-recipe-button"
+                              className="open-menu-recipe-button compact"
+                              title={`Открыть рецепт: ${getRecipeTitle(mealPlan.recipeId)}`}
                               onClick={() => openRecipeFromMenu(mealPlan.recipeId)}
                             >
-                              Открыть рецепт: {getRecipeTitle(mealPlan.recipeId)}
+                              {getRecipeById(mealPlan.recipeId)?.image ? (
+                                <img src={getRecipeById(mealPlan.recipeId).image} alt="" />
+                              ) : (
+                                <ChefHat size={18} />
+                              )}
                             </button>
                           )}
                         </div>
@@ -3795,18 +3772,30 @@ export default function App() {
             {shoppingList.length === 0 ? (
               <p className="muted">Пока ничего докупать не нужно или меню ещё не заполнено.</p>
             ) : (
-              <div className="shopping-grid">
-                {shoppingList.map((item) => (
-                  <label key={`${item.name}-${item.unit}`} className="shopping-item">
-                    <input type="checkbox" />
-                    <span>
-                      <strong>{item.name}</strong> — купить <strong>{Number(item.buyAmount.toFixed(2))} {item.unit}</strong>
-                      <br />
-                      <small>Нужно: {Number(item.amount.toFixed(2))} {item.unit}, есть: {Number(item.available.toFixed(2))} {item.unit}</small>
-                    </span>
-                  </label>
-                ))}
-              </div>
+              <>
+                <div className="shopping-actions">
+                  <button type="button" onClick={addBoughtItemsToPantry}>
+                    Куплено → добавить в продукты дома
+                  </button>
+                </div>
+
+                <div className="shopping-grid">
+                  {shoppingList.map((item) => (
+                    <label key={`${item.name}-${item.unit}`} className="shopping-item">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(checkedShoppingItems[getShoppingItemKey(item)])}
+                        onChange={() => toggleShoppingItem(item)}
+                      />
+                      <span>
+                        <strong>{item.name}</strong> — купить <strong>{Number(item.buyAmount.toFixed(2))} {item.unit}</strong>
+                        <br />
+                        <small>Нужно: {Number(item.amount.toFixed(2))} {item.unit}, есть: {Number(item.available.toFixed(2))} {item.unit}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </>
             )}
           </section>
         )}
@@ -3950,35 +3939,46 @@ export default function App() {
 
                 <div className="directory-list">
                   {directoryProducts.map((product) => (
-                    <div key={product.key} className="directory-product-card">
-                      <div>
+                    <details key={product.key} className="directory-product-card compact">
+                      <summary>
                         <strong>{product.displayName || product.key}</strong>
-                        <span>{product.key}</span>
-                      </div>
-
-                      <div className="directory-product-macros">
                         <span>{product.calories} ккал</span>
                         <span>Б {product.protein}</span>
                         <span>Ж {product.fat}</span>
                         <span>У {product.carbs}</span>
-                      </div>
+                      </summary>
 
-                      <div className="directory-product-actions">
-                        <button type="button" onClick={() => fillDirectoryFormFromProduct(product.key)}>
-                          Изменить
-                        </button>
+                      <div className="directory-product-details">
+                        <p>{product.key}</p>
 
-                        {product.isCustom && (
-                          <button
-                            type="button"
-                            className="danger"
-                            onClick={() => deleteCustomDirectoryProduct(product.key)}
-                          >
-                            Удалить
+                        <div className="micro-grid">
+                          {Object.entries(NUTRIENT_LABELS)
+                            .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
+                            .map(([key, label]) => (
+                              <div key={key}>
+                                <span>{label}</span>
+                                <strong>{product[key] || 0}</strong>
+                              </div>
+                            ))}
+                        </div>
+
+                        <div className="directory-product-actions">
+                          <button type="button" onClick={() => fillDirectoryFormFromProduct(product.key)}>
+                            Изменить
                           </button>
-                        )}
+
+                          {product.isCustom && (
+                            <button
+                              type="button"
+                              className="danger"
+                              onClick={() => deleteCustomDirectoryProduct(product.key)}
+                            >
+                              Удалить
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    </details>
                   ))}
                 </div>
               </div>
