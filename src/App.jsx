@@ -943,61 +943,180 @@ export default function App() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [menu, recipes, pantryTotals]);
 
-  function splitDetectedRecipes(text) {
-    const cleanText = text.replace(/\r/g, "").trim();
+  function stripPageMarkers(text) {
+    return String(text || "").replace(/\n?--- СТРАНИЦА \d+ ---\n?/g, "\n").trim();
+  }
+
+  function getPageNumberNearIndex(text, index) {
+    const before = text.slice(0, index);
+    const matches = [...before.matchAll(/--- СТРАНИЦА (\d+) ---/g)];
+    const last = matches[matches.length - 1];
+    return last ? Number(last[1]) : 1;
+  }
+
+  function findTitleBefore(text, index) {
+    const before = text.slice(0, index);
+    const lines = before
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .filter((line) => !/^--- СТРАНИЦА \d+ ---$/i.test(line));
+
+    const candidates = lines
+      .slice(-6)
+      .filter((line) => {
+        const lower = line.toLowerCase();
+        if (/ингредиенты|состав|продукты|приготовление|шаги|описание|способ/i.test(lower)) return false;
+        if (line.length < 3 || line.length > 90) return false;
+        return true;
+      });
+
+    return candidates[candidates.length - 1] || "";
+  }
+
+  function findRecipeStart(text, ingredientMatchIndex) {
+    const before = text.slice(0, ingredientMatchIndex);
+    const lastPageMarker = before.lastIndexOf("--- СТРАНИЦА");
+    const lastDoubleBreak = before.lastIndexOf("\n\n");
+    const titleLine = findTitleBefore(text, ingredientMatchIndex);
+
+    if (titleLine) {
+      const titleIndex = text.lastIndexOf(titleLine, ingredientMatchIndex);
+      if (titleIndex >= 0) return titleIndex;
+    }
+
+    return Math.max(lastPageMarker, lastDoubleBreak, 0);
+  }
+
+  function splitDetectedRecipes(text, pageImages = []) {
+    const cleanText = String(text || "").replace(/\r/g, "").trim();
+
     if (!cleanText) return [];
 
-    const ingredientMatches = [...cleanText.matchAll(/(?:ингредиенты|состав|продукты)[:\s]*/gi)];
+    const ingredientMatches = [
+      ...cleanText.matchAll(/(?:^|\n)\s*(ингредиенты|состав|продукты)\s*[:：]?\s*(?:\n|$)/gi),
+    ];
 
-    if (ingredientMatches.length <= 1) {
-      return [{ id: crypto.randomUUID(), title: cleanText.split("\n").find(Boolean)?.trim() || "Рецепт из файла", text: cleanText }];
+    if (ingredientMatches.length === 0) {
+      const pageNumber = getPageNumberNearIndex(cleanText, 0);
+      return [
+        {
+          id: crypto.randomUUID(),
+          title: stripPageMarkers(cleanText).split("\n").find(Boolean)?.trim() || "Рецепт из файла",
+          text: cleanText,
+          pageNumber,
+          image: pageImages[pageNumber - 1] || "",
+        },
+      ];
     }
 
     return ingredientMatches.map((match, index) => {
-      const start = index === 0 ? 0 : match.index;
-      const end = ingredientMatches[index + 1]?.index || cleanText.length;
-      const block = cleanText.slice(start, end).trim();
-      const blockLines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+      const recipeStart = findRecipeStart(cleanText, match.index || 0);
+      const nextMatch = ingredientMatches[index + 1];
+      const recipeEnd = nextMatch ? findRecipeStart(cleanText, nextMatch.index || cleanText.length) : cleanText.length;
 
-      let title = `Рецепт ${index + 1}`;
-      const ingredientsLineIndex = blockLines.findIndex((line) => /ингредиенты|состав|продукты/i.test(line));
+      const block = cleanText.slice(recipeStart, recipeEnd).trim();
+      const pageNumber = getPageNumberNearIndex(cleanText, recipeStart);
 
-      if (ingredientsLineIndex > 0) title = blockLines[ingredientsLineIndex - 1];
-      else if (blockLines[0]) title = blockLines[0];
+      const title =
+        findTitleBefore(cleanText, match.index || recipeStart) ||
+        stripPageMarkers(block).split("\n").find(Boolean)?.trim() ||
+        `Рецепт ${index + 1}`;
 
-      return { id: crypto.randomUUID(), title, text: block };
+      return {
+        id: crypto.randomUUID(),
+        title,
+        text: block,
+        pageNumber,
+        image: pageImages[pageNumber - 1] || "",
+      };
     });
   }
 
-  function parseRecipeText(text) {
-    const cleanText = text.replace(/\r/g, "").trim();
+  function parseRecipeText(text, recipeImage = "") {
+    const cleanText = stripPageMarkers(text).replace(/\r/g, "").trim();
+
     if (!cleanText) return;
 
-    const lines = cleanText.split("\n").map((line) => line.trim()).filter(Boolean);
-    const title = lines[0]?.replace(/^название[:\-]?\s*/i, "") || "Новый рецепт";
+    const lines = cleanText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+
     const lowerLines = lines.map((line) => line.toLowerCase());
 
-    const ingredientsStart = lowerLines.findIndex((line) => /ингредиенты|состав|продукты/.test(line));
-    const stepsStart = lowerLines.findIndex((line) => /приготовление|способ|шаги|инструкция/.test(line));
+    const ingredientsStart = lowerLines.findIndex((line) =>
+      /^(ингредиенты|состав|продукты)\s*[:：]?\s*$/.test(line)
+    );
+
+    const stepsStart = lowerLines.findIndex((line) =>
+      /^(приготовление|способ приготовления|шаги|инструкция|пошаговое приготовление|как готовить|описание)\s*[:：]?\s*$/.test(line)
+    );
+
+    let title = "Новый рецепт";
+
+    if (ingredientsStart > 0) {
+      title = lines[ingredientsStart - 1]
+        ?.replace(/^название[:\-]?\s*/i, "")
+        .trim();
+    } else {
+      title = lines[0]?.replace(/^название[:\-]?\s*/i, "").trim() || "Новый рецепт";
+    }
+
     const timeMatch = cleanText.match(/(\d+\s*(?:мин|минут|ч|час|часа|часов))/i);
     const servingsMatch = cleanText.match(/(\d+)\s*(?:порц|порции|порций|человека|человек)/i);
 
     let ingredientLines = [];
 
     if (ingredientsStart >= 0) {
-      const end = stepsStart > ingredientsStart ? stepsStart : lines.length;
-      ingredientLines = lines.slice(ingredientsStart + 1, end);
+      const end =
+        stepsStart > ingredientsStart
+          ? stepsStart
+          : lowerLines.findIndex((line, index) =>
+              index > ingredientsStart &&
+              /^(приготовление|способ|шаги|инструкция|описание|как готовить)/i.test(line)
+            );
+
+      const ingredientEnd = end > ingredientsStart ? end : lines.length;
+
+      ingredientLines = lines
+        .slice(ingredientsStart + 1, ingredientEnd)
+        .filter((line) => {
+          const lower = line.toLowerCase();
+          if (/^(приготовление|способ|шаги|инструкция|описание|как готовить)/i.test(lower)) return false;
+          if (/^\d+\.\s+[а-яa-z]/i.test(line) && line.length > 40) return false;
+          return true;
+        });
     } else {
-      ingredientLines = lines.filter((line) => /^[-•*]|\d+\s*(г|кг|мл|л|шт|ст\.?\s*л|ч\.?\s*л)/i.test(line)).slice(0, 20);
+      ingredientLines = lines
+        .filter((line) =>
+          /^[-•*]|\d+\s*(г|кг|мл|л|шт|ст\.?\s*л|ч\.?\s*л)/i.test(line)
+        )
+        .slice(0, 30);
     }
 
-    const parsedIngredientsText = ingredientLines.map((line) => line.replace(/^[-•*]\s*/, "").trim()).filter(Boolean).join("\n");
-    const steps = stepsStart >= 0 ? lines.slice(stepsStart + 1).join("\n") : lines.slice(1).join("\n");
+    const parsedIngredientsText = ingredientLines
+      .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+      .filter(Boolean)
+      .join("\n");
+
+    let steps = "";
+
+    if (stepsStart >= 0) {
+      steps = lines.slice(stepsStart + 1).join("\n");
+    } else if (ingredientsStart >= 0) {
+      const afterIngredients = lines.slice(ingredientsStart + 1 + ingredientLines.length);
+      steps = afterIngredients
+        .filter((line) => !/^(приготовление|способ|шаги|инструкция|описание|как готовить)/i.test(line.toLowerCase()))
+        .join("\n");
+    } else {
+      steps = lines.slice(1).join("\n");
+    }
 
     setForm({
       title,
       description: "Рецепт добавлен из распознанного текста.",
-      image: "",
+      image: recipeImage || "",
       time: timeMatch?.[1] || "",
       mealCategory: "any",
       dishType: "any",
@@ -1009,42 +1128,132 @@ export default function App() {
     setActiveTab("add");
   }
 
+  function getPdfPageTextFromItems(items) {
+    const positioned = items
+      .map((item) => ({
+        text: item.str,
+        x: item.transform?.[4] || 0,
+        y: Math.round(item.transform?.[5] || 0),
+      }))
+      .filter((item) => item.text && item.text.trim());
+
+    positioned.sort((a, b) => {
+      if (Math.abs(b.y - a.y) > 3) return b.y - a.y;
+      return a.x - b.x;
+    });
+
+    const lines = [];
+
+    positioned.forEach((item) => {
+      const lastLine = lines[lines.length - 1];
+
+      if (!lastLine || Math.abs(lastLine.y - item.y) > 3) {
+        lines.push({
+          y: item.y,
+          parts: [item],
+        });
+      } else {
+        lastLine.parts.push(item);
+      }
+    });
+
+    return lines
+      .map((line) =>
+        line.parts
+          .sort((a, b) => a.x - b.x)
+          .map((part) => part.text)
+          .join(" ")
+          .replace(/\s+/g, " ")
+          .trim()
+      )
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  async function renderPdfPageToImage(page, scale = 1.2) {
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    await page.render({
+      canvasContext: context,
+      viewport,
+    }).promise;
+
+    return canvas.toDataURL("image/jpeg", 0.82);
+  }
+
   async function extractTextFromPdf(file) {
     const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    const pdf = await pdfjsLib.getDocument({
+      data: arrayBuffer,
+    }).promise;
 
     let textFromPdf = "";
+    const pageImages = [];
+    const pageTexts = [];
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-      setRecognitionStatus(`Читаю текст PDF: страница ${pageNumber} из ${pdf.numPages}`);
+      setRecognitionStatus(`Читаю PDF: страница ${pageNumber} из ${pdf.numPages}`);
+
       const page = await pdf.getPage(pageNumber);
+      const pageImage = await renderPdfPageToImage(page, 1.15);
+      pageImages.push(pageImage);
+
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item) => item.str).join(" ");
-      textFromPdf += `\n\n${pageText}`;
+      const pageText = getPdfPageTextFromItems(textContent.items);
+
+      pageTexts.push(pageText);
+      textFromPdf += `\n\n--- СТРАНИЦА ${pageNumber} ---\n${pageText}`;
     }
 
-    if (textFromPdf.trim().length > 30) return textFromPdf.trim();
+    if (textFromPdf.replace(/--- СТРАНИЦА \d+ ---/g, "").trim().length > 30) {
+      return {
+        text: textFromPdf.trim(),
+        pageImages,
+        pageTexts,
+      };
+    }
 
     let recognizedText = "";
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-      setRecognitionStatus(`PDF похож на скан. Распознаю страницу ${pageNumber} из ${pdf.numPages}...`);
+      setRecognitionStatus(
+        `PDF похож на скан. Распознаю страницу ${pageNumber} из ${pdf.numPages}...`
+      );
 
       const page = await pdf.getPage(pageNumber);
-      const viewport = page.getViewport({ scale: 2 });
+      const viewport = page.getViewport({
+        scale: 2,
+      });
+
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
 
       canvas.width = viewport.width;
       canvas.height = viewport.height;
 
-      await page.render({ canvasContext: context, viewport }).promise;
+      await page.render({
+        canvasContext: context,
+        viewport,
+      }).promise;
 
       const result = await Tesseract.recognize(canvas, "rus+eng");
-      recognizedText += `\n\n${result?.data?.text || ""}`;
+
+      const pageText = result?.data?.text || "";
+      pageTexts[pageNumber - 1] = pageText;
+      recognizedText += `\n\n--- СТРАНИЦА ${pageNumber} ---\n${pageText}`;
     }
 
-    return recognizedText.trim();
+    return {
+      text: recognizedText.trim(),
+      pageImages,
+      pageTexts,
+    };
   }
 
   async function handleRecipeUpload(event) {
@@ -1058,7 +1267,7 @@ export default function App() {
     if (file.type.startsWith("text/") || file.name.endsWith(".md") || file.name.endsWith(".txt")) {
       const text = await file.text();
       setRecognitionText(text);
-      setDetectedRecipes(splitDetectedRecipes(text));
+      setDetectedRecipes(splitDetectedRecipes(text, []));
       setRecognitionStatus("Текст загружен. Можно выбрать рецепт или создать черновик.");
       return;
     }
@@ -1068,8 +1277,9 @@ export default function App() {
         setIsRecognizing(true);
         setRecognitionStatus("Читаю PDF...");
 
-        const text = await extractTextFromPdf(file);
-        const foundRecipes = splitDetectedRecipes(text);
+        const pdfData = await extractTextFromPdf(file);
+        const text = pdfData.text || "";
+        const foundRecipes = splitDetectedRecipes(text, pdfData.pageImages || []);
 
         setRecognitionText(text);
         setDetectedRecipes(foundRecipes);
@@ -1078,7 +1288,7 @@ export default function App() {
           foundRecipes.length > 1
             ? `PDF распознан. Найдено рецептов: ${foundRecipes.length}. Выбери нужный.`
             : text
-            ? "PDF распознан. Проверь текст и создай рецепт."
+            ? "PDF распознан. Проверь текст, выбери рецепт или создай черновик."
             : "Не удалось найти текст в PDF."
         );
       } catch {
@@ -1104,7 +1314,7 @@ export default function App() {
         });
 
         const text = result?.data?.text || "";
-        const foundRecipes = splitDetectedRecipes(text);
+        const foundRecipes = splitDetectedRecipes(text, []);
 
         setRecognitionText(text);
         setDetectedRecipes(foundRecipes);
@@ -1641,9 +1851,11 @@ export default function App() {
 
                 <div className="detected-recipes-grid">
                   {detectedRecipes.map((recipe, index) => (
-                    <button key={recipe.id} className="detected-recipe-card" onClick={() => { setRecognitionText(recipe.text); parseRecipeText(recipe.text); }}>
+                    <button key={recipe.id} className="detected-recipe-card" onClick={() => { setRecognitionText(recipe.text); parseRecipeText(recipe.text, recipe.image); }}>
+                      {recipe.image && <img src={recipe.image} alt={recipe.title || `Рецепт ${index + 1}`} />}
                       <strong>{recipe.title || `Рецепт ${index + 1}`}</strong>
-                      <span>{recipe.text.slice(0, 160)}...</span>
+                      <small>Страница {recipe.pageNumber || index + 1}</small>
+                      <span>{stripPageMarkers(recipe.text).slice(0, 160)}...</span>
                     </button>
                   ))}
                 </div>
@@ -1658,7 +1870,7 @@ export default function App() {
                   onChange={(event) => {
                     const text = event.target.value;
                     setRecognitionText(text);
-                    setDetectedRecipes(splitDetectedRecipes(text));
+                    setDetectedRecipes(splitDetectedRecipes(text, []));
                   }}
                   placeholder={`Можно вставить текст вручную, например:\n\nОмлет с сыром\nИнгредиенты:\n- яйца 3 шт\n- сыр 50 г\n- молоко 50 мл\nПриготовление:\nВзбей яйца, добавь сыр и молоко, готовь 8 минут.`}
                 />
@@ -1672,7 +1884,7 @@ export default function App() {
 
                 <p>{recognitionStatus || "Файл ещё не выбран."}</p>
 
-                <Button onClick={() => parseRecipeText(recognitionText)} disabled={!recognitionText.trim() || isRecognizing}>
+                <Button onClick={() => parseRecipeText(recognitionText, detectedRecipes[0]?.image || "")} disabled={!recognitionText.trim() || isRecognizing}>
                   <Wand2 size={20} />
                   Создать черновик
                 </Button>
