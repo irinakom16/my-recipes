@@ -195,6 +195,7 @@ const starterRecipes = [
     title: "Омлет с сыром и томатами",
     description: "Быстрый завтрак из простых продуктов.",
     image: "",
+    imageCrop: { zoom: 1, x: 50, y: 50 },
     time: "15 мин",
     mealCategory: "breakfast",
     dishType: "breakfast",
@@ -212,6 +213,7 @@ const starterRecipes = [
     title: "Курица с рисом",
     description: "Сытный обед на каждый день.",
     image: "",
+    imageCrop: { zoom: 1, x: 50, y: 50 },
     time: "35 мин",
     mealCategory: "lunch",
     dishType: "main",
@@ -229,6 +231,7 @@ const starterRecipes = [
     title: "Паста с томатами",
     description: "Простой ужин за полчаса.",
     image: "",
+    imageCrop: { zoom: 1, x: 50, y: 50 },
     time: "25 мин",
     mealCategory: "dinner",
     dishType: "main",
@@ -263,26 +266,91 @@ function findNutritionKey(name) {
   return Object.keys(NUTRITION_DB).find((key) => cleanName.includes(key) || key.includes(cleanName));
 }
 
+function parseAmount(value) {
+  if (!value) return null;
+
+  const text = String(value).trim().replace(",", ".");
+
+  if (/^\d+\s*\/\s*\d+$/.test(text)) {
+    const [a, b] = text.split("/").map(Number);
+    return b ? a / b : null;
+  }
+
+  return Number(text);
+}
+
 function parseIngredientLine(line) {
-  const original = String(line || "").replace(/^[-•*]\s*/, "").replace(/\s+/g, " ").trim();
+  const original = String(line || "")
+    .replace(/^[-•*]\s*/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
   if (!original) return null;
 
-  const amountMatch = original.match(
-    /(\d+(?:[.,]\d+)?)\s*(кг|г|гр|мл|л|шт|штук|ст\.?\s*л|ч\.?\s*л|зубчика?|зубчиков)?/i
-  );
+  const unitsPattern =
+    "(кг|г|гр|грамм|грамма|граммов|мл|л|шт|штук|штука|штуки|ст\\.?\\s*л|ч\\.?\\s*л|зубчика?|зубчиков)";
 
-  const amount = amountMatch ? Number(amountMatch[1].replace(",", ".")) : 1;
-  const unit = amountMatch?.[2] ? normalizeUnit(amountMatch[2]) : "шт";
+  const patterns = [
+    // брокколи 100 г
+    new RegExp(`^(.+?)\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s*${unitsPattern}\\.?$`, "i"),
+    // 100 г брокколи
+    new RegExp(`^(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s*${unitsPattern}\\.?\\s+(.+)$`, "i"),
+    // г 100 брокколи / шт 2 яйца
+    new RegExp(`^${unitsPattern}\\.?\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s+(.+)$`, "i"),
+    // брокколи г 100
+    new RegExp(`^(.+?)\\s+${unitsPattern}\\.?\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)$`, "i"),
+  ];
 
-  let name = original
-    .replace(amountMatch?.[0] || "", "")
+  let name = "";
+  let amount = 1;
+  let unit = "шт";
+
+  const match1 = original.match(patterns[0]);
+  const match2 = original.match(patterns[1]);
+  const match3 = original.match(patterns[2]);
+  const match4 = original.match(patterns[3]);
+
+  if (match1) {
+    name = match1[1];
+    amount = parseAmount(match1[2]) || 1;
+    unit = normalizeUnit(match1[3]);
+  } else if (match2) {
+    amount = parseAmount(match2[1]) || 1;
+    unit = normalizeUnit(match2[2]);
+    name = match2[3];
+  } else if (match3) {
+    unit = normalizeUnit(match3[1]);
+    amount = parseAmount(match3[2]) || 1;
+    name = match3[3];
+  } else if (match4) {
+    name = match4[1];
+    unit = normalizeUnit(match4[2]);
+    amount = parseAmount(match4[3]) || 1;
+  } else {
+    const amountMatch = original.match(
+      /(\d+(?:[.,]\d+)?|\d+\s*\/\s*\d+)\s*(кг|г|гр|мл|л|шт|штук|ст\.?\s*л|ч\.?\s*л|зубчика?|зубчиков)?/i
+    );
+
+    amount = amountMatch ? parseAmount(amountMatch[1]) || 1 : 1;
+    unit = amountMatch?.[2] ? normalizeUnit(amountMatch[2]) : "шт";
+
+    name = original.replace(amountMatch?.[0] || "", "");
+  }
+
+  name = String(name || "")
     .replace(/\bпо вкусу\b/gi, "")
     .replace(/[—–-].*$/, "")
+    .replace(/[:：]+$/, "")
     .trim();
 
   if (!name) name = original;
 
-  return { name: normalizeIngredient(name), amount, unit, original };
+  return {
+    name: normalizeIngredient(name),
+    amount,
+    unit,
+    original,
+  };
 }
 
 function makeIngredient(name, amount, unit) {
@@ -575,7 +643,14 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
 
       {recipe.image && (
         <div className="recipe-photo">
-          <img src={recipe.image} alt={recipe.title} />
+          <img
+            src={recipe.image}
+            alt={recipe.title}
+            style={{
+              transform: `scale(${recipe.imageCrop?.zoom || 1})`,
+              transformOrigin: `${recipe.imageCrop?.x ?? 50}% ${recipe.imageCrop?.y ?? 50}%`,
+            }}
+          />
         </div>
       )}
 
@@ -758,6 +833,7 @@ export default function App() {
     title: "",
     description: "",
     image: "",
+    imageCrop: { zoom: 1, x: 50, y: 50 },
     time: "",
     mealCategory: "any",
     dishType: "any",
@@ -1033,10 +1109,10 @@ export default function App() {
     });
   }
 
-  function parseRecipeText(text, recipeImage = "") {
+  function extractRecipeDraft(text, recipeImage = "") {
     const cleanText = stripPageMarkers(text).replace(/\r/g, "").trim();
 
-    if (!cleanText) return;
+    if (!cleanText) return null;
 
     const lines = cleanText
       .split("\n")
@@ -1090,13 +1166,16 @@ export default function App() {
     } else {
       ingredientLines = lines
         .filter((line) =>
-          /^[-•*]|\d+\s*(г|кг|мл|л|шт|ст\.?\s*л|ч\.?\s*л)/i.test(line)
+          /^[-•*]|\d+\s*(г|кг|мл|л|шт|ст\.?\s*л|ч\.?\s*л)|^(г|кг|мл|л|шт)\s+\d+/i.test(line)
         )
         .slice(0, 30);
     }
 
     const parsedIngredientsText = ingredientLines
-      .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+      .map((line) => {
+        const parsed = parseIngredientLine(line);
+        return parsed ? `${parsed.name} ${parsed.amount} ${parsed.unit}` : line.replace(/^[-•*]\s*/, "").trim();
+      })
       .filter(Boolean)
       .join("\n");
 
@@ -1113,19 +1192,73 @@ export default function App() {
       steps = lines.slice(1).join("\n");
     }
 
-    setForm({
+    return {
       title,
       description: "Рецепт добавлен из распознанного текста.",
       image: recipeImage || "",
+      imageCrop: { zoom: 1, x: 50, y: 50 },
       time: timeMatch?.[1] || "",
       mealCategory: "any",
       dishType: "any",
       servings: servingsMatch?.[1] ? Number(servingsMatch[1]) : 2,
-      ingredients: parsedIngredientsText,
+      ingredientsText: parsedIngredientsText,
+      ingredients: splitIngredients(parsedIngredientsText),
       steps,
+    };
+  }
+
+  function parseRecipeText(text, recipeImage = "") {
+    const draft = extractRecipeDraft(text, recipeImage);
+
+    if (!draft) return;
+
+    setForm({
+      title: draft.title,
+      description: draft.description,
+      image: draft.image,
+      imageCrop: draft.imageCrop,
+      time: draft.time,
+      mealCategory: draft.mealCategory,
+      dishType: draft.dishType,
+      servings: draft.servings,
+      ingredients: draft.ingredientsText,
+      steps: draft.steps,
     });
 
     setActiveTab("add");
+  }
+
+  function createAllDetectedRecipes() {
+    if (!detectedRecipes.length) return;
+
+    const drafts = detectedRecipes
+      .map((recipe) => extractRecipeDraft(recipe.text, recipe.image))
+      .filter(Boolean)
+      .filter((draft) => draft.title && draft.ingredients.length > 0);
+
+    if (!drafts.length) {
+      alert("Не удалось создать рецепты. Проверь распознанный текст.");
+      return;
+    }
+
+    const newRecipes = drafts.map((draft) => ({
+      id: crypto.randomUUID(),
+      title: draft.title,
+      description: draft.description,
+      image: draft.image,
+      imageCrop: draft.imageCrop,
+      time: draft.time,
+      mealCategory: draft.mealCategory,
+      dishType: draft.dishType,
+      servings: draft.servings,
+      ingredients: draft.ingredients,
+      steps: draft.steps,
+    }));
+
+    setRecipes((current) => [...newRecipes, ...current]);
+    setSelectedRecipeId(newRecipes[0].id);
+    setActiveTab("recipes");
+    alert(`Создано рецептов: ${newRecipes.length}`);
   }
 
   function getPdfPageTextFromItems(items) {
@@ -1353,6 +1486,7 @@ export default function App() {
       setForm((current) => ({
         ...current,
         image: reader.result,
+        imageCrop: { zoom: 1, x: 50, y: 50 },
       }));
     };
 
@@ -1364,6 +1498,17 @@ export default function App() {
     setForm((current) => ({
       ...current,
       image: "",
+      imageCrop: { zoom: 1, x: 50, y: 50 },
+    }));
+  }
+
+  function updateRecipeImageCrop(field, value) {
+    setForm((current) => ({
+      ...current,
+      imageCrop: {
+        ...(current.imageCrop || { zoom: 1, x: 50, y: 50 }),
+        [field]: Number(value),
+      },
     }));
   }
 
@@ -1373,6 +1518,7 @@ export default function App() {
       title: recipe.title || "",
       description: recipe.description || "",
       image: recipe.image || "",
+      imageCrop: recipe.imageCrop || { zoom: 1, x: 50, y: 50 },
       time: recipe.time || "",
       mealCategory: recipe.mealCategory || "any",
       dishType: recipe.dishType || "any",
@@ -1387,7 +1533,7 @@ export default function App() {
 
   function cancelEditingRecipe() {
     setEditingRecipeId(null);
-    setForm({ title: "", description: "", image: "", time: "", mealCategory: "any", dishType: "any", servings: 2, ingredients: "", steps: "" });
+    setForm({ title: "", description: "", image: "", imageCrop: { zoom: 1, x: 50, y: 50 }, time: "", mealCategory: "any", dishType: "any", servings: 2, ingredients: "", steps: "" });
   }
 
   function addRecipe(event) {
@@ -1400,6 +1546,7 @@ export default function App() {
       title: form.title.trim(),
       description: form.description.trim(),
       image: form.image || "",
+      imageCrop: form.imageCrop || { zoom: 1, x: 50, y: 50 },
       time: form.time.trim(),
       mealCategory: form.mealCategory || "any",
       dishType: form.dishType || "any",
@@ -1431,7 +1578,7 @@ export default function App() {
       setSelectedRecipeId(newRecipe.id);
     }
 
-    setForm({ title: "", description: "", image: "", time: "", mealCategory: "any", dishType: "any", servings: 2, ingredients: "", steps: "" });
+    setForm({ title: "", description: "", image: "", imageCrop: { zoom: 1, x: 50, y: 50 }, time: "", mealCategory: "any", dishType: "any", servings: 2, ingredients: "", steps: "" });
     setActiveTab("recipes");
   }
 
@@ -1801,8 +1948,55 @@ export default function App() {
                 </div>
 
                 {form.image && (
-                  <div className="recipe-image-preview">
-                    <img src={form.image} alt="Предпросмотр рецепта" />
+                  <div className="recipe-image-editor">
+                    <div className="recipe-image-preview crop-preview">
+                      <img
+                        src={form.image}
+                        alt="Предпросмотр рецепта"
+                        style={{
+                          transform: `scale(${form.imageCrop?.zoom || 1})`,
+                          transformOrigin: `${form.imageCrop?.x ?? 50}% ${form.imageCrop?.y ?? 50}%`,
+                        }}
+                      />
+                    </div>
+
+                    <div className="crop-controls">
+                      <label>
+                        Масштаб
+                        <input
+                          type="range"
+                          min="1"
+                          max="2.5"
+                          step="0.05"
+                          value={form.imageCrop?.zoom || 1}
+                          onChange={(event) => updateRecipeImageCrop("zoom", event.target.value)}
+                        />
+                      </label>
+
+                      <label>
+                        Положение по горизонтали
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={form.imageCrop?.x ?? 50}
+                          onChange={(event) => updateRecipeImageCrop("x", event.target.value)}
+                        />
+                      </label>
+
+                      <label>
+                        Положение по вертикали
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="1"
+                          value={form.imageCrop?.y ?? 50}
+                          onChange={(event) => updateRecipeImageCrop("y", event.target.value)}
+                        />
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1847,7 +2041,13 @@ export default function App() {
 
             {detectedRecipes.length > 1 && (
               <div className="detected-recipes">
-                <h3>Найденные рецепты</h3>
+                <div className="detected-recipes-header">
+                  <h3>Найденные рецепты</h3>
+
+                  <button type="button" onClick={createAllDetectedRecipes}>
+                    Создать все рецепты
+                  </button>
+                </div>
 
                 <div className="detected-recipes-grid">
                   {detectedRecipes.map((recipe, index) => (
