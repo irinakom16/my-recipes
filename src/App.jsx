@@ -1725,7 +1725,12 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
       </div>
 
       <div className="recipe-compact-main">
-        <div className="recipe-compact-photo">
+        <div
+          className="recipe-compact-photo"
+          style={{
+            height: `${Math.max(120, Math.min(360, recipe.ingredients.length * 38))}px`,
+          }}
+        >
           {recipe.image ? <img src={recipe.image} alt={recipe.title} /> : <ChefHat size={38} />}
         </div>
 
@@ -3250,22 +3255,28 @@ export default function App() {
           <StatCard icon={<ChefHat />} label="Рецептов" value={recipes.length} onClick={() => setActiveTab("recipes")} />
           <StatCard icon={<Carrot />} label="Продуктов дома" value={pantry.length} onClick={() => setActiveTab("pantry")} />
           <StatCard icon={<CalendarDays />} label="Блюд в меню" value={Object.values(menu).flatMap((day) => Object.values(day)).filter(Boolean).length} onClick={() => setActiveTab("menu")} />
-          <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} onClick={() => setActiveTab("shopping")} />
+          <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} onClick={() => setActiveTab("pantry")} />
         </section>
 
-        <nav className="tabs">
+        <nav className="tabs icon-tabs" aria-label="Разделы приложения">
           {[
-            ["recipes", "Рецепты"],
-            ["add", "Добавить рецепт"],
-            ["recognize", "Распознать"],
-            ["pantry", "Продукты дома"],
-            ["menu", "Меню"],
-            ["shopping", "Покупки"],
-            ["units", "Единицы"],
-            ["directory", "Продукты"],
-          ].map(([id, label]) => (
-            <button key={id} onClick={() => setActiveTab(id)} className={activeTab === id ? "active" : ""}>
-              {label}
+            ["recipes", "Рецепты", <ChefHat size={20} />],
+            ["add", "Добавить рецепт", <Plus size={20} />],
+            ["recognize", "Распознать", <Upload size={20} />],
+            ["pantry", "Дом и покупки", <ShoppingBasket size={20} />],
+            ["menu", "Меню", <CalendarDays size={20} />],
+            ["units", "Единицы", <FileText size={20} />],
+            ["directory", "Продукты", <Carrot size={20} />],
+          ].map(([id, label, icon]) => (
+            <button
+              key={id}
+              title={label}
+              aria-label={label}
+              onClick={() => setActiveTab(id)}
+              className={activeTab === id || (id === "pantry" && activeTab === "shopping") ? "active" : ""}
+            >
+              {icon}
+              <span>{label}</span>
             </button>
           ))}
         </nav>
@@ -3563,95 +3574,150 @@ export default function App() {
         )}
 
         {activeTab === "pantry" && (
-          <section className="card section">
-            <h2>Продукты дома</h2>
-            <p className="muted">
-              Теперь можно добавлять продукт удобнее: отдельно название, количество и единицу.
-            </p>
-
-            <form className="pantry-form" onSubmit={addPantryFromForm}>
-              <Field label="Продукт">
-                <input
-                  className="input"
-                  list="known-products-list"
-                  value={pantryForm.name}
-                  onChange={(event) => setPantryForm({ ...pantryForm, name: event.target.value })}
-                  placeholder="Например, брокколи"
-                />
-              </Field>
-
-              <Field label="Количество">
-                <input
-                  className="input"
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={pantryForm.amount}
-                  onChange={(event) => setPantryForm({ ...pantryForm, amount: event.target.value })}
-                  placeholder="100"
-                />
-              </Field>
-
-              <Field label="Единица">
-                <select className="input" value={pantryForm.unit} onChange={(event) => setPantryForm({ ...pantryForm, unit: event.target.value })}>
-                  {UNIT_OPTIONS.map((unit) => (
-                    <option key={unit} value={unit}>{unit}</option>
-                  ))}
-                </select>
-              </Field>
-
-              <Button type="submit">
-                <Plus size={20} />
-                Добавить
-              </Button>
-            </form>
-
-            <details className="quick-add">
-              <summary>Быстро добавить списком</summary>
-              <div className="add-row">
-                <input className="input" value={ingredientInput} onChange={(event) => setIngredientInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addIngredientsQuick(); }} placeholder="Например: брокколи 50 г, яйцо 6 шт, молоко 1 л" />
-                <Button onClick={addIngredientsQuick}>
-                  <Plus size={20} />
-                  Добавить
-                </Button>
+          <section className="section home-products-section">
+            <div className="section-heading">
+              <div>
+                <h2>Продукты дома и покупки</h2>
+                <p className="muted">
+                  Слева — что есть дома, справа — что нужно купить по выбранному меню.
+                </p>
               </div>
-            </details>
-<div className="pantry-list compact-pantry-list">
-              {pantry.map((item, index) => {
-                const status = getIngredientStatus(item);
+            </div>
 
-                return (
-                  <div key={`${getIngredientName(item)}-${index}`} className={`pantry-item compact ${status.ok ? "recognized" : "needs-attention"}`}>
+            <div className="home-shopping-layout">
+              <div className="card compact-column">
+                <h3>Продукты дома</h3>
+
+                <form className="pantry-form compact-add-form" onSubmit={addPantryFromForm}>
+                  <Field label="Продукт">
                     <input
                       className="input"
-                      value={item.name}
-                      onChange={(event) => updatePantryItem(index, "name", event.target.value)}
+                      list="known-products-list"
+                      value={pantryForm.name}
+                      onChange={(event) => setPantryForm({ ...pantryForm, name: event.target.value })}
+                      placeholder="Например, брокколи"
                     />
+                  </Field>
 
+                  <Field label="Кол-во">
                     <input
                       className="input"
                       type="number"
+                      min="0"
                       step="0.1"
-                      value={item.amount}
-                      onChange={(event) => updatePantryItem(index, "amount", event.target.value)}
+                      value={pantryForm.amount}
+                      onChange={(event) => setPantryForm({ ...pantryForm, amount: event.target.value })}
+                      placeholder="100"
                     />
+                  </Field>
 
-                    <select
-                      className="input"
-                      value={item.unit}
-                      onChange={(event) => updatePantryItem(index, "unit", event.target.value)}
-                    >
+                  <Field label="Ед.">
+                    <select className="input" value={pantryForm.unit} onChange={(event) => setPantryForm({ ...pantryForm, unit: event.target.value })}>
                       {UNIT_OPTIONS.map((unit) => (
                         <option key={unit} value={unit}>{unit}</option>
                       ))}
                     </select>
+                  </Field>
 
-                    {!status.ok && <small>{status.reason}</small>}
+                  <Button type="submit">
+                    <Plus size={18} />
+                    Добавить
+                  </Button>
+                </form>
 
-                    <button onClick={() => removePantryItem(index)} title="Удалить продукт">×</button>
+                <details className="quick-add compact-quick-add">
+                  <summary>Быстро добавить списком</summary>
+                  <div className="add-row">
+                    <input className="input" value={ingredientInput} onChange={(event) => setIngredientInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") addIngredientsQuick(); }} placeholder="Например: брокколи 50 г, яйцо 6 шт" />
+                    <Button onClick={addIngredientsQuick}>
+                      <Plus size={18} />
+                      Добавить
+                    </Button>
                   </div>
-                );
-              })}
+                </details>
+
+                <div className="pantry-list compact-pantry-list">
+                  {pantry.map((item, index) => {
+                    const status = getIngredientStatus(item);
+
+                    return (
+                      <div key={`${getIngredientName(item)}-${index}`} className={`pantry-item compact ${status.ok ? "recognized" : "needs-attention"}`}>
+                        <input
+                          className="input"
+                          value={item.name}
+                          onChange={(event) => updatePantryItem(index, "name", event.target.value)}
+                        />
+
+                        <input
+                          className="input"
+                          type="number"
+                          step="0.1"
+                          value={item.amount}
+                          onChange={(event) => updatePantryItem(index, "amount", event.target.value)}
+                        />
+
+                        <select
+                          className="input"
+                          value={item.unit}
+                          onChange={(event) => updatePantryItem(index, "unit", event.target.value)}
+                        >
+                          {UNIT_OPTIONS.map((unit) => (
+                            <option key={unit} value={unit}>{unit}</option>
+                          ))}
+                        </select>
+
+                        {!status.ok && <small>{status.reason}</small>}
+
+                        <button onClick={() => removePantryItem(index)} title="Удалить продукт">×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="card compact-column">
+                <div className="compact-column-heading">
+                  <h3>Список покупок</h3>
+
+                  {shoppingList.length > 0 && (
+                    <button type="button" className="bought-button" onClick={addBoughtItemsToPantry}>
+                      Куплено
+                    </button>
+                  )}
+                </div>
+
+                {shoppingList.length === 0 ? (
+                  <p className="muted">
+                    Пока ничего докупать не нужно или меню ещё не заполнено.
+                  </p>
+                ) : (
+                  <div className="shopping-list-compact">
+                    {shoppingList.map((item) => {
+                      const key = getShoppingItemKey(item);
+
+                      return (
+                        <label key={key} className="shopping-item compact">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(checkedShoppingItems[key])}
+                            onChange={() => toggleShoppingItem(item)}
+                          />
+
+                          <span>{item.name}</span>
+
+                          <strong>
+                            {Number(item.buyAmount.toFixed(2))} {item.unit}
+                          </strong>
+
+                          <small>
+                            нужно {Number(item.amount.toFixed(2))}, есть {Number(item.available.toFixed(2))}
+                          </small>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         )}
@@ -3766,223 +3832,8 @@ export default function App() {
         )}
 
         {activeTab === "shopping" && (
-          <section className="card section">
-            <h2>Список покупок</h2>
-
-            {shoppingList.length === 0 ? (
-              <p className="muted">Пока ничего докупать не нужно или меню ещё не заполнено.</p>
-            ) : (
-              <>
-                <div className="shopping-actions">
-                  <button type="button" onClick={addBoughtItemsToPantry}>
-                    Куплено → добавить в продукты дома
-                  </button>
-                </div>
-
-                <div className="shopping-grid">
-                  {shoppingList.map((item) => (
-                    <label key={`${item.name}-${item.unit}`} className="shopping-item">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(checkedShoppingItems[getShoppingItemKey(item)])}
-                        onChange={() => toggleShoppingItem(item)}
-                      />
-                      <span>
-                        <strong>{item.name}</strong> — купить <strong>{Number(item.buyAmount.toFixed(2))} {item.unit}</strong>
-                        <br />
-                        <small>Нужно: {Number(item.amount.toFixed(2))} {item.unit}, есть: {Number(item.available.toFixed(2))} {item.unit}</small>
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </>
-            )}
-          </section>
-        )}
-
-        {activeTab === "directory" && (
-          <section className="card section">
-            <div className="section-heading">
-              <div>
-                <h2>Продукты</h2>
-                <p className="muted">
-                  Здесь можно пополнять базу продуктов. Все значения указываются на 100 г продукта.
-                  Пользовательские продукты сохраняются в backup.
-                </p>
-              </div>
-            </div>
-
-            <div className="directory-layout">
-              <form className="directory-form" onSubmit={saveDirectoryProduct}>
-                <h3>Добавить или изменить продукт</h3>
-
-                <Field label="Название продукта">
-                  <input
-                    className="input"
-                    list="known-products-list"
-                    value={directoryForm.name}
-                    onChange={(event) =>
-                      setDirectoryForm({ ...directoryForm, name: event.target.value })
-                    }
-                    placeholder="Например, протеин"
-                  />
-                </Field>
-
-                <div className="nutrition-search-row">
-                  <button
-                    type="button"
-                    className="nutrition-lookup-button"
-                    onClick={() => searchNutritionByName(directoryForm.name)}
-                  >
-                    <Database size={18} />
-                    Найти в Open Food Facts
-                  </button>
-                </div>
-
-                {(nutritionSearchStatus || nutritionSuggestions.length > 0) && (
-                  <div className="nutrition-suggestions-box">
-                    {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
-
-                    {nutritionSuggestions.length > 0 && (
-                      <div className="nutrition-suggestions-list">
-                        {nutritionSuggestions.map((suggestion) => (
-                          <button
-                            key={suggestion.id}
-                            type="button"
-                            onClick={() => {
-                              saveNutritionSuggestion(suggestion.name, suggestion.nutrition);
-                              setDirectoryForm({
-                                name: normalizeIngredient(suggestion.name),
-                                calories: suggestion.nutrition.calories,
-                                protein: suggestion.nutrition.protein,
-                                fat: suggestion.nutrition.fat,
-                                carbs: suggestion.nutrition.carbs,
-                                fiber: suggestion.nutrition.fiber,
-                                sugar: suggestion.nutrition.sugar,
-                                sodium: suggestion.nutrition.sodium,
-                                potassium: suggestion.nutrition.potassium,
-                                calcium: suggestion.nutrition.calcium,
-                                iron: suggestion.nutrition.iron,
-                                magnesium: suggestion.nutrition.magnesium,
-                                vitaminC: suggestion.nutrition.vitaminC,
-                                vitaminA: suggestion.nutrition.vitaminA,
-                                folate: suggestion.nutrition.folate,
-                              });
-                            }}
-                          >
-                            <strong>{suggestion.name}</strong>
-                            <span>
-                              {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="directory-nutrients-grid">
-                  {[
-                    ["calories", "Ккал"],
-                    ["protein", "Белки, г"],
-                    ["fat", "Жиры, г"],
-                    ["carbs", "Углеводы, г"],
-                    ["fiber", "Клетчатка, г"],
-                    ["sugar", "Сахар, г"],
-                    ["sodium", "Натрий, мг"],
-                    ["potassium", "Калий, мг"],
-                    ["calcium", "Кальций, мг"],
-                    ["iron", "Железо, мг"],
-                    ["magnesium", "Магний, мг"],
-                    ["vitaminC", "Витамин C, мг"],
-                    ["vitaminA", "Витамин A, мкг"],
-                    ["folate", "Фолаты, мкг"],
-                  ].map(([key, label]) => (
-                    <Field key={key} label={label}>
-                      <input
-                        className="input"
-                        type="number"
-                        step="0.01"
-                        value={directoryForm[key]}
-                        onChange={(event) =>
-                          setDirectoryForm({
-                            ...directoryForm,
-                            [key]: event.target.value,
-                          })
-                        }
-                      />
-                    </Field>
-                  ))}
-                </div>
-
-                <div className="directory-actions">
-                  <Button type="submit">
-                    <Save size={20} />
-                    Сохранить продукт
-                  </Button>
-
-                  <button type="button" className="backup-button" onClick={resetDirectoryForm}>
-                    Очистить форму
-                  </button>
-                </div>
-              </form>
-
-              <div className="directory-list-panel">
-                <div className="search-box">
-                  <Search size={20} />
-                  <input
-                    value={directoryQuery}
-                    onChange={(event) => setDirectoryQuery(event.target.value)}
-                    placeholder="Поиск по справочнику..."
-                  />
-                </div>
-
-                <div className="directory-list">
-                  {directoryProducts.map((product) => (
-                    <details key={product.key} className="directory-product-card compact">
-                      <summary>
-                        <strong>{product.displayName || product.key}</strong>
-                        <span>{product.calories} ккал</span>
-                        <span>Б {product.protein}</span>
-                        <span>Ж {product.fat}</span>
-                        <span>У {product.carbs}</span>
-                      </summary>
-
-                      <div className="directory-product-details">
-                        <p>{product.key}</p>
-
-                        <div className="micro-grid">
-                          {Object.entries(NUTRIENT_LABELS)
-                            .filter(([key]) => !["calories", "protein", "fat", "carbs"].includes(key))
-                            .map(([key, label]) => (
-                              <div key={key}>
-                                <span>{label}</span>
-                                <strong>{product[key] || 0}</strong>
-                              </div>
-                            ))}
-                        </div>
-
-                        <div className="directory-product-actions">
-                          <button type="button" onClick={() => fillDirectoryFormFromProduct(product.key)}>
-                            Изменить
-                          </button>
-
-                          {product.isCustom && (
-                            <button
-                              type="button"
-                              className="danger"
-                              onClick={() => deleteCustomDirectoryProduct(product.key)}
-                            >
-                              Удалить
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </details>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <section className="section">
+            {setActiveTab("pantry")}
           </section>
         )}
 
