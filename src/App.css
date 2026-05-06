@@ -2167,3 +2167,34 @@ body {
     max-width: 100%;
   }
 }
+
+
+/* Revert photo crop UI: simple image preview */
+.recipe-image-editor,
+.crop-controls {
+  display: none !important;
+}
+
+.recipe-image-preview {
+  max-width: 420px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #eee7df;
+  background: white;
+}
+
+.recipe-image-preview img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  transform: none !important;
+}
+
+.recipe-photo img {
+  transform: none !important;
+}
+
+/* Ingredient import note: keep ingredient names visually calm */
+.simple-ingredient-button .ingredient-name-text {
+  font-weight: 400;
+}

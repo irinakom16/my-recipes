@@ -276,7 +276,17 @@ function parseAmount(value) {
     return b ? a / b : null;
   }
 
-  return Number(text);
+  const number = Number(text);
+  return Number.isFinite(number) ? number : null;
+}
+
+function cleanIngredientName(name) {
+  return normalizeIngredient(name)
+    .replace(/\bпо вкусу\b/gi, "")
+    .replace(/[—–-].*$/, "")
+    .replace(/[:：]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function parseIngredientLine(line) {
@@ -287,70 +297,75 @@ function parseIngredientLine(line) {
 
   if (!original) return null;
 
-  const unitsPattern =
+  const unitWords =
     "(кг|г|гр|грамм|грамма|граммов|мл|л|шт|штук|штука|штуки|ст\\.?\\s*л|ч\\.?\\s*л|зубчика?|зубчиков)";
 
+  const amountPattern = "(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)";
+
   const patterns = [
-    // брокколи 100 г
-    new RegExp(`^(.+?)\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s*${unitsPattern}\\.?$`, "i"),
-    // 100 г брокколи
-    new RegExp(`^(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s*${unitsPattern}\\.?\\s+(.+)$`, "i"),
-    // г 100 брокколи / шт 2 яйца
-    new RegExp(`^${unitsPattern}\\.?\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)\\s+(.+)$`, "i"),
-    // брокколи г 100
-    new RegExp(`^(.+?)\\s+${unitsPattern}\\.?\\s+(\\d+(?:[.,]\\d+)?|\\d+\\s*\\/\\s*\\d+)$`, "i"),
+    // Как мы вводим руками: "брокколи 100 г"
+    {
+      regex: new RegExp(`^(.+?)\\s+${amountPattern}\\s*${unitWords}\\.?$`, "i"),
+      pick: (m) => ({ name: m[1], amount: m[2], unit: m[3] }),
+    },
+
+    // Встречается в рецептах: "100 г брокколи"
+    {
+      regex: new RegExp(`^${amountPattern}\\s*${unitWords}\\.?\\s+(.+)$`, "i"),
+      pick: (m) => ({ name: m[3], amount: m[1], unit: m[2] }),
+    },
+
+    // Ошибка распознавания: "г 100 брокколи"
+    {
+      regex: new RegExp(`^${unitWords}\\.?\\s+${amountPattern}\\s+(.+)$`, "i"),
+      pick: (m) => ({ name: m[3], amount: m[2], unit: m[1] }),
+    },
+
+    // Ошибка распознавания: "брокколи г 100"
+    {
+      regex: new RegExp(`^(.+?)\\s+${unitWords}\\.?\\s+${amountPattern}$`, "i"),
+      pick: (m) => ({ name: m[1], amount: m[3], unit: m[2] }),
+    },
   ];
 
-  let name = "";
-  let amount = 1;
-  let unit = "шт";
+  for (const pattern of patterns) {
+    const match = original.match(pattern.regex);
 
-  const match1 = original.match(patterns[0]);
-  const match2 = original.match(patterns[1]);
-  const match3 = original.match(patterns[2]);
-  const match4 = original.match(patterns[3]);
+    if (match) {
+      const picked = pattern.pick(match);
+      const amount = parseAmount(picked.amount) || 1;
+      const unit = normalizeUnit(picked.unit || "шт");
+      const name = cleanIngredientName(picked.name);
 
-  if (match1) {
-    name = match1[1];
-    amount = parseAmount(match1[2]) || 1;
-    unit = normalizeUnit(match1[3]);
-  } else if (match2) {
-    amount = parseAmount(match2[1]) || 1;
-    unit = normalizeUnit(match2[2]);
-    name = match2[3];
-  } else if (match3) {
-    unit = normalizeUnit(match3[1]);
-    amount = parseAmount(match3[2]) || 1;
-    name = match3[3];
-  } else if (match4) {
-    name = match4[1];
-    unit = normalizeUnit(match4[2]);
-    amount = parseAmount(match4[3]) || 1;
-  } else {
-    const amountMatch = original.match(
-      /(\d+(?:[.,]\d+)?|\d+\s*\/\s*\d+)\s*(кг|г|гр|мл|л|шт|штук|ст\.?\s*л|ч\.?\s*л|зубчика?|зубчиков)?/i
-    );
-
-    amount = amountMatch ? parseAmount(amountMatch[1]) || 1 : 1;
-    unit = amountMatch?.[2] ? normalizeUnit(amountMatch[2]) : "шт";
-
-    name = original.replace(amountMatch?.[0] || "", "");
+      if (name) {
+        return {
+          name,
+          amount,
+          unit,
+          original,
+        };
+      }
+    }
   }
 
-  name = String(name || "")
-    .replace(/\bпо вкусу\b/gi, "")
-    .replace(/[—–-].*$/, "")
-    .replace(/[:：]+$/, "")
-    .trim();
-
-  if (!name) name = original;
-
+  // Если количество не найдено, оставляем продукт как 1 шт.
+  // Это лучше, чем ломать рецепт: потом можно отредактировать вручную.
   return {
-    name: normalizeIngredient(name),
-    amount,
-    unit,
+    name: cleanIngredientName(original),
+    amount: 1,
+    unit: "шт",
     original,
   };
+}
+
+function ingredientToInputLine(ingredient) {
+  const item = typeof ingredient === "string" ? parseIngredientLine(ingredient) : ingredient;
+  if (!item) return "";
+
+  const amount = Number(item.amount || 1);
+  const formattedAmount = Number.isInteger(amount) ? String(amount) : String(Number(amount.toFixed(2)));
+
+  return `${item.name} ${formattedAmount} ${item.unit}`;
 }
 
 function makeIngredient(name, amount, unit) {
@@ -643,14 +658,7 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
 
       {recipe.image && (
         <div className="recipe-photo">
-          <img
-            src={recipe.image}
-            alt={recipe.title}
-            style={{
-              transform: `scale(${recipe.imageCrop?.zoom || 1})`,
-              transformOrigin: `${recipe.imageCrop?.x ?? 50}% ${recipe.imageCrop?.y ?? 50}%`,
-            }}
-          />
+          <img src={recipe.image} alt={recipe.title} />
         </div>
       )}
 
@@ -1174,7 +1182,7 @@ export default function App() {
     const parsedIngredientsText = ingredientLines
       .map((line) => {
         const parsed = parseIngredientLine(line);
-        return parsed ? `${parsed.name} ${parsed.amount} ${parsed.unit}` : line.replace(/^[-•*]\s*/, "").trim();
+        return parsed ? ingredientToInputLine(parsed) : line.replace(/^[-•*]\s*/, "").trim();
       })
       .filter(Boolean)
       .join("\n");
@@ -1502,16 +1510,6 @@ export default function App() {
     }));
   }
 
-  function updateRecipeImageCrop(field, value) {
-    setForm((current) => ({
-      ...current,
-      imageCrop: {
-        ...(current.imageCrop || { zoom: 1, x: 50, y: 50 }),
-        [field]: Number(value),
-      },
-    }));
-  }
-
   function startEditingRecipe(recipe) {
     setEditingRecipeId(recipe.id);
     setForm({
@@ -1524,7 +1522,7 @@ export default function App() {
       dishType: recipe.dishType || "any",
       servings: recipe.servings || 1,
       ingredients: recipe.ingredients
-        .map((item) => formatIngredient(item).replace(" — ", " "))
+        .map((item) => ingredientToInputLine(item))
         .join("\n"),
       steps: recipe.steps || "",
     });
@@ -1948,55 +1946,8 @@ export default function App() {
                 </div>
 
                 {form.image && (
-                  <div className="recipe-image-editor">
-                    <div className="recipe-image-preview crop-preview">
-                      <img
-                        src={form.image}
-                        alt="Предпросмотр рецепта"
-                        style={{
-                          transform: `scale(${form.imageCrop?.zoom || 1})`,
-                          transformOrigin: `${form.imageCrop?.x ?? 50}% ${form.imageCrop?.y ?? 50}%`,
-                        }}
-                      />
-                    </div>
-
-                    <div className="crop-controls">
-                      <label>
-                        Масштаб
-                        <input
-                          type="range"
-                          min="1"
-                          max="2.5"
-                          step="0.05"
-                          value={form.imageCrop?.zoom || 1}
-                          onChange={(event) => updateRecipeImageCrop("zoom", event.target.value)}
-                        />
-                      </label>
-
-                      <label>
-                        Положение по горизонтали
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="1"
-                          value={form.imageCrop?.x ?? 50}
-                          onChange={(event) => updateRecipeImageCrop("x", event.target.value)}
-                        />
-                      </label>
-
-                      <label>
-                        Положение по вертикали
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          step="1"
-                          value={form.imageCrop?.y ?? 50}
-                          onChange={(event) => updateRecipeImageCrop("y", event.target.value)}
-                        />
-                      </label>
-                    </div>
+                  <div className="recipe-image-preview">
+                    <img src={form.image} alt="Предпросмотр рецепта" />
                   </div>
                 )}
               </div>
