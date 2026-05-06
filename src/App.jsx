@@ -1600,6 +1600,40 @@ function getMenuMealRecipeIds(mealPlan) {
   return mealPlan.recipeId ? [mealPlan.recipeId] : [];
 }
 
+function getMondayDate(date = new Date()) {
+  const next = new Date(date);
+  const day = next.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  next.setDate(next.getDate() + diff);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+function formatDateInput(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function addDays(dateString, days) {
+  const date = new Date(`${dateString}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return formatDateInput(date);
+}
+
+function formatRuDate(dateString) {
+  const date = new Date(`${dateString}T00:00:00`);
+  return date.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "short",
+  });
+}
+
+function getWeekLabel(weekStart) {
+  return `${formatRuDate(weekStart)} — ${formatRuDate(addDays(weekStart, 6))}`;
+}
+
 function getMealCategoryLabel(value) {
   return MEAL_CATEGORY_OPTIONS.find((option) => option.value === value)?.label || "Любое время";
 }
@@ -1862,6 +1896,8 @@ export default function App() {
     { name: "курица", amount: 300, unit: "г" },
   ]);
 
+  const [selectedWeekStart, setSelectedWeekStart] = useState(formatDateInput(getMondayDate()));
+  const [menusByWeek, setMenusByWeek] = useState({});
   const [menu, setMenu] = useState(createEmptyMenu);
   const [query, setQuery] = useState("");
   const [ingredientInput, setIngredientInput] = useState("");
@@ -1955,7 +1991,22 @@ export default function App() {
 
       if (parsed.recipes) setRecipes(parsed.recipes);
       if (parsed.pantry) setPantry(parsed.pantry);
-      if (parsed.menu) setMenu(normalizeMenu(parsed.menu));
+
+      if (parsed.menusByWeek) {
+        const normalizedWeeks = {};
+        Object.entries(parsed.menusByWeek).forEach(([week, weekMenu]) => {
+          normalizedWeeks[week] = normalizeMenu(weekMenu);
+        });
+        setMenusByWeek(normalizedWeeks);
+      }
+
+      if (parsed.selectedWeekStart) {
+        setSelectedWeekStart(parsed.selectedWeekStart);
+        const weekMenu = parsed.menusByWeek?.[parsed.selectedWeekStart] || parsed.menu;
+        if (weekMenu) setMenu(normalizeMenu(weekMenu));
+      } else if (parsed.menu) {
+        setMenu(normalizeMenu(parsed.menu));
+      }
 
       if (loadedKey !== STORAGE_KEY) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
@@ -1966,8 +2017,28 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ recipes, pantry, menu, customNutritionDb }));
-  }, [recipes, pantry, menu, customNutritionDb]);
+    setMenusByWeek((current) => ({
+      ...current,
+      [selectedWeekStart]: normalizeMenu(menu),
+    }));
+  }, [menu, selectedWeekStart]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        recipes,
+        pantry,
+        menu,
+        selectedWeekStart,
+        menusByWeek: {
+          ...menusByWeek,
+          [selectedWeekStart]: normalizeMenu(menu),
+        },
+        customNutritionDb,
+      })
+    );
+  }, [recipes, pantry, menu, selectedWeekStart, menusByWeek, customNutritionDb]);
 
   function exportAppData() {
     const data = {
@@ -1976,6 +2047,11 @@ export default function App() {
       recipes,
       pantry,
       menu,
+      selectedWeekStart,
+      menusByWeek: {
+        ...menusByWeek,
+        [selectedWeekStart]: normalizeMenu(menu),
+      },
       customNutritionDb,
     };
 
@@ -2011,7 +2087,22 @@ export default function App() {
 
       if (parsed.recipes) setRecipes(parsed.recipes);
       if (parsed.pantry) setPantry(parsed.pantry);
-      if (parsed.menu) setMenu(normalizeMenu(parsed.menu));
+
+      if (parsed.menusByWeek) {
+        const normalizedWeeks = {};
+        Object.entries(parsed.menusByWeek).forEach(([week, weekMenu]) => {
+          normalizedWeeks[week] = normalizeMenu(weekMenu);
+        });
+        setMenusByWeek(normalizedWeeks);
+      }
+
+      if (parsed.selectedWeekStart) {
+        setSelectedWeekStart(parsed.selectedWeekStart);
+        const weekMenu = parsed.menusByWeek?.[parsed.selectedWeekStart] || parsed.menu;
+        if (weekMenu) setMenu(normalizeMenu(weekMenu));
+      } else if (parsed.menu) {
+        setMenu(normalizeMenu(parsed.menu));
+      }
 
       localStorage.setItem(
         STORAGE_KEY,
@@ -2019,6 +2110,8 @@ export default function App() {
           recipes: parsed.recipes || recipes,
           pantry: parsed.pantry || pantry,
           menu: parsed.menu || menu,
+          selectedWeekStart: parsed.selectedWeekStart || selectedWeekStart,
+          menusByWeek: parsed.menusByWeek || menusByWeek,
           customNutritionDb: parsed.customNutritionDb || customNutritionDb,
         })
       );
@@ -2081,7 +2174,7 @@ export default function App() {
   }, [recipes, query, pantryTotals]);
 
   const selectedRecipe =
-    recipeMatches.find((recipe) => recipe.id === selectedRecipeId) || recipeMatches[0] || null;
+    selectedRecipeId ? recipeMatches.find((recipe) => recipe.id === selectedRecipeId) || null : null;
 
   const shoppingList = useMemo(() => {
     const required = {};
@@ -2948,6 +3041,22 @@ export default function App() {
     setPantry((current) => current.filter((_, index) => index !== indexToRemove));
   }
 
+  function changeSelectedWeek(weekStart) {
+    const normalizedDate = formatDateInput(getMondayDate(new Date(`${weekStart}T00:00:00`)));
+
+    setMenusByWeek((current) => ({
+      ...current,
+      [selectedWeekStart]: normalizeMenu(menu),
+    }));
+
+    setSelectedWeekStart(normalizedDate);
+    setMenu(normalizeMenu(menusByWeek[normalizedDate] || createEmptyMenu()));
+  }
+
+  function shiftWeek(direction) {
+    changeSelectedWeek(addDays(selectedWeekStart, direction * 7));
+  }
+
   function updateMenuMealMode(day, meal, mode) {
     setMenu((current) => {
       const normalized = normalizeMenu(current);
@@ -3046,11 +3155,26 @@ export default function App() {
     });
 
     setMenu(next);
-    setActiveTab("menu");
+    setMenusByWeek((current) => ({
+      ...current,
+      [selectedWeekStart]: next,
+    }));
   }
 
   function getRecipeTitle(id) {
     return recipes.find((recipe) => recipe.id === id)?.title || "";
+  }
+
+  function openRecipeFromMenu(recipeId) {
+    if (!recipeId) return;
+    setSelectedRecipeId(recipeId);
+    setActiveTab("recipes");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function getWeekHistoryList() {
+    const allWeeks = new Set([...Object.keys(menusByWeek), selectedWeekStart]);
+    return [...allWeeks].sort((a, b) => b.localeCompare(a));
   }
 
   function getRecipesForBuilderPart(part) {
@@ -3088,11 +3212,6 @@ export default function App() {
           </div>
 
           <div className="hero-actions">
-            <Button onClick={autoFillMenu}>
-              <Sparkles size={20} />
-              Заполнить меню
-            </Button>
-
             <button type="button" className="backup-button" onClick={exportAppData}>
               <Download size={18} />
               Скачать backup
@@ -3143,64 +3262,63 @@ export default function App() {
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Найти рецепт или ингредиент..."
+                placeholder="Найти рецепт, ингредиент или тип блюда..."
               />
             </div>
 
-            <div className="recipes-layout">
-              <aside className="recipes-list-panel">
-                <div className="recipes-list-heading">
-                  <h2>Все рецепты</h2>
-                  <span>{recipeMatches.length}</span>
-                </div>
+            {!selectedRecipe ? (
+              <div className="recipe-gallery">
+                {recipeMatches.map((recipe) => {
+                  const portionNutrition = divideNutrition(
+                    calculateRecipeNutrition(recipe),
+                    recipe.servings
+                  );
 
-                <div className="recipes-list">
-                  {recipeMatches.map((recipe) => {
-                    const portionNutrition = divideNutrition(
-                      calculateRecipeNutrition(recipe),
-                      recipe.servings
-                    );
+                  return (
+                    <button
+                      key={recipe.id}
+                      className="recipe-gallery-card"
+                      onClick={() => setSelectedRecipeId(recipe.id)}
+                    >
+                      <div className="recipe-gallery-image">
+                        {recipe.image ? (
+                          <img src={recipe.image} alt={recipe.title} />
+                        ) : (
+                          <ChefHat size={34} />
+                        )}
+                      </div>
 
-                    return (
-                      <button
-                        key={recipe.id}
-                        className={`recipe-list-item ${
-                          selectedRecipe?.id === recipe.id ? "active" : ""
-                        }`}
-                        onClick={() => setSelectedRecipeId(recipe.id)}
-                      >
-                        <div>
-                          <strong>{recipe.title}</strong>
-                          <span>
-                            {getMealCategoryLabel(recipe.mealCategory || "any")} · {getDishTypeLabel(recipe.dishType || "any")} · {recipe.time || "Без времени"} · {recipe.servings || 1} порц. · {recipe.score}%
-                          </span>
-                        </div>
-                        <b>{portionNutrition.calories} ккал</b>
-                      </button>
-                    );
-                  })}
-                </div>
-              </aside>
+                      <div className="recipe-gallery-body">
+                        <strong>{recipe.title}</strong>
+                        <span>
+                          {getMealCategoryLabel(recipe.mealCategory || "any")} · {getDishTypeLabel(recipe.dishType || "any")}
+                        </span>
+                        <small>{portionNutrition.calories} ккал на порцию · {recipe.score}%</small>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="recipe-page-view">
+                <button
+                  type="button"
+                  className="back-to-recipes-button"
+                  onClick={() => setSelectedRecipeId(null)}
+                >
+                  ← Все рецепты
+                </button>
 
-              <main className="recipe-detail-panel">
-                {selectedRecipe ? (
-                  <RecipeCard
-                    recipe={selectedRecipe}
-                    onEdit={() => startEditingRecipe(selectedRecipe)}
-                    onDelete={() => {
-                      deleteRecipe(selectedRecipe.id);
-                      setSelectedRecipeId(null);
-                    }}
-                  />
-                ) : (
-                  <div className="empty-recipe-state">
-                    <ChefHat size={42} />
-                    <h3>Рецепт не выбран</h3>
-                    <p>Выбери рецепт из списка слева, чтобы открыть подробную карточку.</p>
-                  </div>
-                )}
-              </main>
-            </div>
+                <RecipeCard
+                  recipe={selectedRecipe}
+                  onEdit={() => startEditingRecipe(selectedRecipe)}
+                  onDelete={() => {
+                    deleteRecipe(selectedRecipe.id);
+                    setSelectedRecipeId(null);
+                  }}
+                />
+              </div>
+            )}
           </section>
         )}
 
@@ -3568,15 +3686,59 @@ export default function App() {
 
         {activeTab === "menu" && (
           <section className="section">
-            <div className="section-heading">
-              <h2>Меню на неделю</h2>
-              <Button onClick={() => setMenu(createEmptyMenu())} variant="secondary">Очистить меню</Button>
+            <div className="section-heading menu-heading">
+              <div>
+                <h2>Меню на неделю</h2>
+                <p className="muted">Планируй меню на конкретную неделю и возвращайся к прошлым неделям.</p>
+              </div>
+
+              <Button onClick={() => setMenu(createEmptyMenu())} variant="secondary">Очистить неделю</Button>
             </div>
 
+            <div className="week-planner-card">
+              <button type="button" onClick={() => shiftWeek(-1)}>← Предыдущая</button>
+
+              <label>
+                Неделя
+                <input
+                  className="input"
+                  type="date"
+                  value={selectedWeekStart}
+                  onChange={(event) => changeSelectedWeek(event.target.value)}
+                />
+              </label>
+
+              <strong>{getWeekLabel(selectedWeekStart)}</strong>
+
+              <button type="button" onClick={() => shiftWeek(1)}>Следующая →</button>
+
+              <button type="button" className="fill-week-button" onClick={autoFillMenu}>
+                <Sparkles size={17} />
+                Заполнить выбранную неделю
+              </button>
+            </div>
+
+            <details className="week-history">
+              <summary>История недель</summary>
+
+              <div className="week-history-list">
+                {getWeekHistoryList().map((week) => (
+                  <button
+                    key={week}
+                    type="button"
+                    className={week === selectedWeekStart ? "active" : ""}
+                    onClick={() => changeSelectedWeek(week)}
+                  >
+                    {getWeekLabel(week)}
+                  </button>
+                ))}
+              </div>
+            </details>
+
             <div className="menu-list">
-              {weekDays.map((day) => (
+              {weekDays.map((day, dayIndex) => (
                 <div key={day} className="card day-card">
-                  <h3>{day}</h3>
+                  <h3>{day} <span>{formatRuDate(addDays(selectedWeekStart, dayIndex))}</span></h3>
 
                   <div className="meal-grid">
                     {mealTypes.map((meal) => {
@@ -3608,7 +3770,13 @@ export default function App() {
                           </select>
 
                           {mealPlan.recipeId && (
-                            <p>{getRecipeTitle(mealPlan.recipeId)}</p>
+                            <button
+                              type="button"
+                              className="open-menu-recipe-button"
+                              onClick={() => openRecipeFromMenu(mealPlan.recipeId)}
+                            >
+                              Открыть рецепт: {getRecipeTitle(mealPlan.recipeId)}
+                            </button>
                           )}
                         </div>
                       );
