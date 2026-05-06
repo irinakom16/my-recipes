@@ -3038,6 +3038,26 @@ export default function App() {
     }));
   }
 
+  function areAllShoppingItemsChecked() {
+    return shoppingList.length > 0 && shoppingList.every((item) => checkedShoppingItems[getShoppingItemKey(item)]);
+  }
+
+  function toggleAllShoppingItems() {
+    const shouldSelectAll = !areAllShoppingItemsChecked();
+
+    if (!shouldSelectAll) {
+      setCheckedShoppingItems({});
+      return;
+    }
+
+    const next = {};
+    shoppingList.forEach((item) => {
+      next[getShoppingItemKey(item)] = true;
+    });
+
+    setCheckedShoppingItems(next);
+  }
+
   function addBoughtItemsToPantry() {
     const selected = shoppingList.filter((item) => checkedShoppingItems[getShoppingItemKey(item)]);
 
@@ -3676,13 +3696,24 @@ export default function App() {
               </div>
 
               <div className="card compact-column">
-                <div className="compact-column-heading">
+                <div className="compact-column-heading shopping-heading">
                   <h3>Список покупок</h3>
 
                   {shoppingList.length > 0 && (
-                    <button type="button" className="bought-button" onClick={addBoughtItemsToPantry}>
-                      Куплено
-                    </button>
+                    <div className="shopping-heading-actions">
+                      <label className="select-all-shopping">
+                        <input
+                          type="checkbox"
+                          checked={areAllShoppingItemsChecked()}
+                          onChange={toggleAllShoppingItems}
+                        />
+                        <span>Выделить все</span>
+                      </label>
+
+                      <button type="button" className="bought-button" onClick={addBoughtItemsToPantry}>
+                        Куплено
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -3791,36 +3822,34 @@ export default function App() {
                         <div key={meal} className="meal-box">
                           <label>{meal}</label>
 
-                          <select
-                            className="input"
-                            value={mealPlan.recipeId || ""}
-                            onChange={(event) =>
-                              updateMenuRecipe(day, meal, event.target.value)
-                            }
-                          >
-                            <option value="">Не выбрано</option>
-
-                            {mealRecipes.map((recipe) => (
-                              <option key={recipe.id} value={recipe.id}>
-                                {recipe.title} — {getDishTypeLabel(recipe.dishType || "any")} — {recipe.score}%
-                              </option>
-                            ))}
-                          </select>
-
-                          {mealPlan.recipeId && (
-                            <button
-                              type="button"
-                              className="open-menu-recipe-button compact"
-                              title={`Открыть рецепт: ${getRecipeTitle(mealPlan.recipeId)}`}
-                              onClick={() => openRecipeFromMenu(mealPlan.recipeId)}
+                          <div className="menu-recipe-row">
+                            <select
+                              className="input"
+                              value={mealPlan.recipeId || ""}
+                              onChange={(event) =>
+                                updateMenuRecipe(day, meal, event.target.value)
+                              }
                             >
-                              {getRecipeById(mealPlan.recipeId)?.image ? (
-                                <img src={getRecipeById(mealPlan.recipeId).image} alt="" />
-                              ) : (
-                                <ChefHat size={18} />
-                              )}
-                            </button>
-                          )}
+                              <option value="">Не выбрано</option>
+
+                              {mealRecipes.map((recipe) => (
+                                <option key={recipe.id} value={recipe.id}>
+                                  {recipe.title} — {getDishTypeLabel(recipe.dishType || "any")} — {recipe.score}%
+                                </option>
+                              ))}
+                            </select>
+
+                            {mealPlan.recipeId && (
+                              <button
+                                type="button"
+                                className="open-menu-recipe-icon"
+                                title={`Открыть рецепт: ${getRecipeTitle(mealPlan.recipeId)}`}
+                                onClick={() => openRecipeFromMenu(mealPlan.recipeId)}
+                              >
+                                ↗
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

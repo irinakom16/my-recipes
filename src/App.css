@@ -3688,3 +3688,220 @@ body {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   Fix: pantry products must always be one product = one row
+   ========================================================= */
+
+.compact-pantry-list {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 6px !important;
+}
+
+.pantry-item.compact {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 74px 58px 26px !important;
+  gap: 6px !important;
+  align-items: center !important;
+  width: 100% !important;
+  min-height: 38px !important;
+  padding: 5px 6px !important;
+  border-radius: 11px !important;
+}
+
+.pantry-item.compact .input {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 5px 7px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+}
+
+.pantry-item.compact select.input {
+  padding-left: 5px !important;
+  padding-right: 3px !important;
+}
+
+.pantry-item.compact small {
+  grid-column: 1 / -1 !important;
+  font-size: 10px !important;
+  line-height: 1.15 !important;
+  margin-top: -2px !important;
+}
+
+.pantry-item.compact button {
+  width: 26px !important;
+  height: 26px !important;
+  min-width: 26px !important;
+  min-height: 26px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  justify-self: end !important;
+}
+
+/* Keep one-row pantry layout on phones too */
+@media (max-width: 760px) {
+  .pantry-item.compact {
+    grid-template-columns: minmax(0, 1fr) 64px 54px 26px !important;
+  }
+
+  .pantry-item.compact .input {
+    font-size: 11px !important;
+    padding: 4px 6px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .pantry-item.compact {
+    grid-template-columns: minmax(0, 1fr) 58px 50px 24px !important;
+    gap: 4px !important;
+  }
+
+  .pantry-item.compact .input {
+    height: 28px !important;
+    min-height: 28px !important;
+    font-size: 10.5px !important;
+    padding: 3px 5px !important;
+  }
+
+  .pantry-item.compact button {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    min-height: 24px !important;
+  }
+}
+
+
+/* Select all in shopping list */
+.shopping-heading {
+  align-items: center;
+}
+
+.shopping-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.select-all-shopping {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fbff;
+  border: 1px solid var(--line, #dbe8f5);
+  color: var(--primary-dark, #2766a3);
+  border-radius: 12px;
+  padding: 7px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.select-all-shopping input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .shopping-heading-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .select-all-shopping,
+  .bought-button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 430px) {
+  .shopping-heading-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Compact weekly menu recipe selector */
+.meal-box {
+  display: grid;
+  gap: 6px;
+}
+
+.menu-recipe-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 6px;
+  align-items: center;
+}
+
+.menu-recipe-row .input {
+  min-width: 0;
+}
+
+.open-menu-recipe-icon {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--primary-soft, #e8f3ff);
+  color: var(--primary-dark, #2766a3);
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.open-menu-recipe-icon:hover {
+  background: var(--primary, #4f8fcf);
+  color: white;
+}
+
+/* Disable previous wide/thumbnail open button styling if old class remains */
+.open-menu-recipe-button.compact {
+  width: 32px !important;
+  height: 32px !important;
+  margin-top: 0 !important;
+}
+
+/* Make weekly menu cells less wide visually */
+.meal-grid {
+  gap: 10px;
+}
+
+.meal-box {
+  padding: 12px;
+  min-width: 0;
+}
+
+.meal-box label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 13px;
+  color: var(--primary-dark, #2766a3);
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .menu-recipe-row {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  .open-menu-recipe-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
