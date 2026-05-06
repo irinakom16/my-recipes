@@ -2408,3 +2408,218 @@ body {
     max-height: none;
   }
 }
+
+
+/* Requested compact visual update */
+html {
+  font-size: 14px;
+}
+
+body {
+  font-size: 14px;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.hero h1 {
+  font-size: 34px;
+}
+
+.hero p {
+  font-size: 14px;
+}
+
+.hero-actions {
+  gap: 6px;
+  min-width: 150px;
+}
+
+.hero-actions .button,
+.backup-button {
+  min-height: 34px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  opacity: 0.82;
+  box-shadow: none;
+}
+
+.hero-actions .button svg,
+.backup-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Move main menu to the left on desktop */
+.container {
+  display: grid;
+  grid-template-columns: 178px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.hero,
+.stats-grid,
+.section {
+  grid-column: 2;
+}
+
+.tabs {
+  grid-column: 1;
+  grid-row: 1 / span 20;
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 24px;
+}
+
+.tabs button {
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+/* Ingredient recognition colors */
+.simple-ingredient-button.recognized .ingredient-name-text {
+  color: #111827;
+}
+
+.simple-ingredient-button.needs-attention {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.simple-ingredient-button.needs-attention .ingredient-name-text,
+.simple-ingredient-button.needs-attention b {
+  color: #b91c1c;
+}
+
+.simple-ingredient-button em {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.simple-ingredient-button .buy-tag {
+  color: #a45f45;
+  background: #fff1ea;
+}
+
+.ingredient-warning {
+  margin: 5px 0 0;
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.pantry-item.needs-attention {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.pantry-item.needs-attention strong,
+.pantry-item.needs-attention span {
+  color: #b91c1c;
+}
+
+.pantry-item small {
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+/* Simpler menu: no constructor look */
+.meal-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.meal-box {
+  background: #fffdf8;
+  border: 1px solid #eee7df;
+}
+
+.meal-box label {
+  font-size: 14px;
+}
+
+.meal-box p {
+  font-size: 13px;
+}
+
+/* Smaller cards */
+.recipe-paper-header h3 {
+  font-size: 24px;
+}
+
+.nutrition-tile strong {
+  font-size: 24px;
+}
+
+.card {
+  padding: 20px;
+}
+
+/* Mobile keeps bottom navigation */
+@media (max-width: 760px) {
+  html {
+    font-size: 15px;
+  }
+
+  .container {
+    display: block;
+  }
+
+  .hero,
+  .stats-grid,
+  .section {
+    grid-column: auto;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 26px;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hero-actions .button,
+  .backup-button {
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .tabs {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    top: auto;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .tabs button {
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+  }
+
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+}

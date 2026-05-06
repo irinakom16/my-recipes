@@ -1331,6 +1331,7 @@ function parseIngredientLine(line) {
     amount: 1,
     unit: "шт",
     original,
+    isGuessedAmount: true,
   };
 }
 
@@ -1365,6 +1366,64 @@ function getIngredientName(value) {
   if (typeof value === "object" && value?.name) return normalizeIngredient(value.name);
   const parsed = parseIngredientLine(value);
   return parsed?.name || normalizeIngredient(value);
+}
+
+function hasRecognizedQuantity(ingredient) {
+  const item = typeof ingredient === "string" ? parseIngredientLine(ingredient) : ingredient;
+  if (!item) return false;
+
+  const amount = Number(item.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return false;
+
+  if (item.isGuessedAmount) return false;
+
+  // Старые рецепты и вручную созданные объекты не всегда имеют original,
+  // поэтому считаем их корректными, если количество уже хранится числом.
+  if (!item.original) return true;
+
+  return /\d/.test(String(item.original));
+}
+
+function getIngredientStatus(ingredient) {
+  const item = typeof ingredient === "string" ? parseIngredientLine(ingredient) : ingredient;
+
+  if (!item) {
+    return {
+      ok: false,
+      reason: "Не удалось разобрать ингредиент",
+    };
+  }
+
+  const name = getIngredientName(item);
+  const nutritionKey = findNutritionKey(name);
+  const amountOk = hasRecognizedQuantity(item);
+  const unitOk = Boolean(UNIT_CONVERSIONS[normalizeUnit(item.unit)] || ["г", "кг", "мл", "л", "шт", "ст.л", "ч.л"].includes(normalizeUnit(item.unit)));
+
+  if (!name || name.length < 2) {
+    return {
+      ok: false,
+      reason: "Непонятное название продукта",
+    };
+  }
+
+  if (!amountOk || !unitOk) {
+    return {
+      ok: false,
+      reason: "Проверь количество или единицу измерения",
+    };
+  }
+
+  if (!nutritionKey) {
+    return {
+      ok: false,
+      reason: "Нет совпадения в справочнике продуктов",
+    };
+  }
+
+  return {
+    ok: true,
+    reason: "Найдено в справочнике",
+  };
 }
 
 function formatIngredient(ingredient) {
@@ -1678,22 +1737,29 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
             const ingredientName = getIngredientName(item);
             const isAvailable = recipe.availableKeys?.includes(ingredientName);
             const isSelected = selectedIngredientIndex === index;
+            const status = getIngredientStatus(item);
 
             return (
               <li key={`${ingredientName}-${index}`}>
                 <button
                   type="button"
-                  className={`simple-ingredient-button ${isSelected ? "active" : ""}`}
+                  className={`simple-ingredient-button ${isSelected ? "active" : ""} ${status.ok ? "recognized" : "needs-attention"}`}
+                  title={status.reason}
                   onClick={() =>
                     setSelectedIngredientIndex(isSelected ? null : index)
                   }
                 >
                   <span>
                     <span className="ingredient-name-text">{item.name}</span>
-                    {!isAvailable && <em>нужно купить</em>}
+                    {!status.ok && <em>проверь</em>}
+                    {status.ok && !isAvailable && <em className="buy-tag">нужно купить</em>}
                   </span>
-                  <b>{Number(item.amount.toFixed?.(2) ?? item.amount)} {item.unit}</b>
+                  <b>{Number(item.amount?.toFixed?.(2) ?? item.amount)} {item.unit}</b>
                 </button>
+
+                {!status.ok && (
+                  <p className="ingredient-warning">{status.reason}</p>
+                )}
               </li>
             );
           })}
@@ -3056,7 +3122,7 @@ export default function App() {
             ["menu", "Меню"],
             ["shopping", "Покупки"],
             ["units", "Единицы"],
-            ["directory", "Справочник"],
+            ["directory", "Продукты"],
           ].map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} className={activeTab === id ? "active" : ""}>
               {label}
@@ -3482,15 +3548,20 @@ export default function App() {
             )}
 
             <div className="pantry-list">
-              {pantry.map((item, index) => (
-                <div key={`${getIngredientName(item)}-${index}`} className="pantry-item">
-                  <div>
-                    <strong>{item.name}</strong>
-                    <span>{Number(item.amount.toFixed?.(2) ?? item.amount)} {item.unit}</span>
+              {pantry.map((item, index) => {
+                const status = getIngredientStatus(item);
+
+                return (
+                  <div key={`${getIngredientName(item)}-${index}`} className={`pantry-item ${status.ok ? "recognized" : "needs-attention"}`}>
+                    <div>
+                      <strong>{item.name}</strong>
+                      <span>{Number(item.amount?.toFixed?.(2) ?? item.amount)} {item.unit}</span>
+                      {!status.ok && <small>{status.reason}</small>}
+                    </div>
+                    <button onClick={() => removePantryItem(index)} title="Удалить продукт">×</button>
                   </div>
-                  <button onClick={() => removePantryItem(index)} title="Удалить продукт">×</button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -3507,83 +3578,37 @@ export default function App() {
                 <div key={day} className="card day-card">
                   <h3>{day}</h3>
 
-                  <div className="meal-grid meal-builder-grid">
+                  <div className="meal-grid">
                     {mealTypes.map((meal) => {
                       const mealPlan = normalizeMenu(menu)[day][meal];
+                      const targetCategory = MEAL_TYPE_TO_CATEGORY[meal];
+                      const mealRecipes = recipeMatches.filter((recipe) => {
+                        const category = recipe.mealCategory || "any";
+                        return category === targetCategory || category === "any";
+                      });
 
                       return (
-                        <div key={meal} className="meal-box meal-builder-box">
-                          <div className="meal-box-header">
-                            <label>{meal}</label>
-                            <span>{formatMenuMealSummary(mealPlan) || "Не выбрано"}</span>
-                          </div>
+                        <div key={meal} className="meal-box">
+                          <label>{meal}</label>
 
-                          <div className="meal-mode-switch">
-                            <button
-                              type="button"
-                              className={mealPlan.mode === "recipe" ? "active" : ""}
-                              onClick={() => updateMenuMealMode(day, meal, "recipe")}
-                            >
-                              Рецепт
-                            </button>
+                          <select
+                            className="input"
+                            value={mealPlan.recipeId || ""}
+                            onChange={(event) =>
+                              updateMenuRecipe(day, meal, event.target.value)
+                            }
+                          >
+                            <option value="">Не выбрано</option>
 
-                            <button
-                              type="button"
-                              className={mealPlan.mode === "builder" ? "active" : ""}
-                              onClick={() => updateMenuMealMode(day, meal, "builder")}
-                            >
-                              Конструктор
-                            </button>
-                          </div>
+                            {mealRecipes.map((recipe) => (
+                              <option key={recipe.id} value={recipe.id}>
+                                {recipe.title} — {getDishTypeLabel(recipe.dishType || "any")} — {recipe.score}%
+                              </option>
+                            ))}
+                          </select>
 
-                          {mealPlan.mode === "recipe" ? (
-                            <select
-                              className="input"
-                              value={mealPlan.recipeId || ""}
-                              onChange={(event) =>
-                                updateMenuRecipe(day, meal, event.target.value)
-                              }
-                            >
-                              <option value="">Выбрать конкретный рецепт</option>
-                              {recipeMatches.map((recipe) => (
-                                <option key={recipe.id} value={recipe.id}>
-                                  {recipe.title} — {getMealCategoryLabel(recipe.mealCategory || "any")} — {getDishTypeLabel(recipe.dishType || "any")} — {recipe.score}%
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <div className="builder-parts">
-                              {MEAL_BUILDER_PARTS.map((part) => {
-                                const options = getRecipesForBuilderPart(part);
-
-                                return (
-                                  <div key={part.key} className="builder-part">
-                                    <label>{part.label}</label>
-
-                                    <select
-                                      className="input"
-                                      value={mealPlan.builder?.[part.key] || ""}
-                                      onChange={(event) =>
-                                        updateMenuBuilderPart(day, meal, part.key, event.target.value)
-                                      }
-                                    >
-                                      <option value="">Не выбрано</option>
-                                      {options.length > 0 ? (
-                                        options.map((recipe) => (
-                                          <option key={recipe.id} value={recipe.id}>
-                                            {recipe.title} — {recipe.score}%
-                                          </option>
-                                        ))
-                                      ) : (
-                                        <option disabled value="">
-                                          Нет рецептов этой категории
-                                        </option>
-                                      )}
-                                    </select>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                          {mealPlan.recipeId && (
+                            <p>{getRecipeTitle(mealPlan.recipeId)}</p>
                           )}
                         </div>
                       );
@@ -3622,7 +3647,7 @@ export default function App() {
           <section className="card section">
             <div className="section-heading">
               <div>
-                <h2>Справочник продуктов</h2>
+                <h2>Продукты</h2>
                 <p className="muted">
                   Здесь можно пополнять базу продуктов. Все значения указываются на 100 г продукта.
                   Пользовательские продукты сохраняются в backup.
