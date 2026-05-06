@@ -18,6 +18,7 @@ import {
   X,
   Download,
   UploadCloud,
+  Database,
 } from "lucide-react";
 import Tesseract from "tesseract.js";
 import * as pdfjsLib from "pdfjs-dist";
@@ -188,6 +189,41 @@ const NUTRIENT_LABELS = {
   vitaminA: "витамин A, мкг",
   folate: "фолаты, мкг",
 };
+
+function mapOpenFoodFactsProductToNutrition(product) {
+  const n = product?.nutriments || {};
+
+  const nutrition = {
+    displayName: product?.product_name || product?.generic_name || "Продукт",
+    calories: Number(n["energy-kcal_100g"] ?? n["energy-kcal"] ?? 0) || 0,
+    protein: Number(n["proteins_100g"] ?? 0) || 0,
+    fat: Number(n["fat_100g"] ?? 0) || 0,
+    carbs: Number(n["carbohydrates_100g"] ?? 0) || 0,
+    fiber: Number(n["fiber_100g"] ?? 0) || 0,
+    sugar: Number(n["sugars_100g"] ?? 0) || 0,
+    sodium: Number(n["sodium_100g"] ? n["sodium_100g"] * 1000 : 0) || 0,
+    potassium: Number(n["potassium_100g"] ? n["potassium_100g"] * 1000 : 0) || 0,
+    calcium: Number(n["calcium_100g"] ? n["calcium_100g"] * 1000 : 0) || 0,
+    iron: Number(n["iron_100g"] ? n["iron_100g"] * 1000 : 0) || 0,
+    magnesium: Number(n["magnesium_100g"] ? n["magnesium_100g"] * 1000 : 0) || 0,
+    vitaminC: Number(n["vitamin-c_100g"] ? n["vitamin-c_100g"] * 1000 : 0) || 0,
+    vitaminA: Number(n["vitamin-a_100g"] ? n["vitamin-a_100g"] * 1000000 : 0) || 0,
+    folate: Number(n["folates_100g"] ? n["folates_100g"] * 1000000 : 0) || 0,
+  };
+
+  Object.keys(nutrition).forEach((key) => {
+    if (typeof nutrition[key] === "number") {
+      nutrition[key] = Number(nutrition[key].toFixed(2));
+    }
+  });
+
+  return nutrition;
+}
+
+function getKnownProductNames() {
+  return Object.keys(NUTRITION_DB).sort((a, b) => a.localeCompare(b));
+}
+
 
 const starterRecipes = [
   {
@@ -837,6 +873,16 @@ export default function App() {
     unit: "г",
   });
 
+  const [recipeIngredientForm, setRecipeIngredientForm] = useState({
+    name: "",
+    amount: "",
+    unit: "г",
+  });
+
+  const [customNutritionDb, setCustomNutritionDb] = useState({});
+  const [nutritionSearchStatus, setNutritionSearchStatus] = useState("");
+  const [nutritionSuggestions, setNutritionSuggestions] = useState([]);
+
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -873,6 +919,16 @@ export default function App() {
 
       if (!parsed) return;
 
+      if (parsed.customNutritionDb) {
+        Object.assign(NUTRITION_DB, parsed.customNutritionDb);
+        setCustomNutritionDb(parsed.customNutritionDb);
+      }
+
+      if (parsed.customNutritionDb) {
+        Object.assign(NUTRITION_DB, parsed.customNutritionDb);
+        setCustomNutritionDb(parsed.customNutritionDb);
+      }
+
       if (parsed.recipes) setRecipes(parsed.recipes);
       if (parsed.pantry) setPantry(parsed.pantry);
       if (parsed.menu) setMenu(normalizeMenu(parsed.menu));
@@ -886,8 +942,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ recipes, pantry, menu }));
-  }, [recipes, pantry, menu]);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ recipes, pantry, menu, customNutritionDb }));
+  }, [recipes, pantry, menu, customNutritionDb]);
 
   function exportAppData() {
     const data = {
@@ -896,6 +952,7 @@ export default function App() {
       recipes,
       pantry,
       menu,
+      customNutritionDb,
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -923,6 +980,11 @@ export default function App() {
         return;
       }
 
+      if (parsed.customNutritionDb) {
+        Object.assign(NUTRITION_DB, parsed.customNutritionDb);
+        setCustomNutritionDb(parsed.customNutritionDb);
+      }
+
       if (parsed.recipes) setRecipes(parsed.recipes);
       if (parsed.pantry) setPantry(parsed.pantry);
       if (parsed.menu) setMenu(normalizeMenu(parsed.menu));
@@ -933,6 +995,7 @@ export default function App() {
           recipes: parsed.recipes || recipes,
           pantry: parsed.pantry || pantry,
           menu: parsed.menu || menu,
+          customNutritionDb: parsed.customNutritionDb || customNutritionDb,
         })
       );
 
@@ -1604,6 +1667,132 @@ export default function App() {
     });
   }
 
+  function applyProductNameSuggestion(name, target = "pantry") {
+    if (target === "recipe") {
+      setRecipeIngredientForm((current) => ({
+        ...current,
+        name,
+      }));
+      return;
+    }
+
+    setPantryForm((current) => ({
+      ...current,
+      name,
+    }));
+  }
+
+  function getLocalNameSuggestions(value) {
+    const query = normalizeIngredient(value);
+    if (!query) return getKnownProductNames().slice(0, 12);
+
+    return getKnownProductNames()
+      .filter((name) => name.includes(query) || query.includes(name))
+      .slice(0, 12);
+  }
+
+  async function searchNutritionByName(name) {
+    const query = normalizeIngredient(name);
+
+    if (!query) {
+      setNutritionSearchStatus("Сначала введи название продукта.");
+      return;
+    }
+
+    const localKey = findNutritionKey(query);
+
+    if (localKey) {
+      setNutritionSearchStatus(`Уже есть в справочнике: ${NUTRITION_DB[localKey].displayName || localKey}.`);
+      setNutritionSuggestions([]);
+      return;
+    }
+
+    try {
+      setNutritionSearchStatus("Ищу продукт в открытом справочнике...");
+      setNutritionSuggestions([]);
+
+      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
+        query
+      )}&search_simple=1&action=process&json=1&page_size=8&fields=product_name,generic_name,nutriments`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      const products = (data.products || [])
+        .filter((product) => {
+          const n = product.nutriments || {};
+          return (
+            product.product_name &&
+            (n["energy-kcal_100g"] || n["proteins_100g"] || n["fat_100g"] || n["carbohydrates_100g"])
+          );
+        })
+        .slice(0, 5);
+
+      if (!products.length) {
+        setNutritionSearchStatus("Не нашла подходящий продукт. Можно оставить без справочника или добавить данные вручную позже.");
+        return;
+      }
+
+      setNutritionSuggestions(
+        products.map((product) => ({
+          id: crypto.randomUUID(),
+          name: product.product_name || product.generic_name || query,
+          nutrition: mapOpenFoodFactsProductToNutrition(product),
+        }))
+      );
+
+      setNutritionSearchStatus("Нашла варианты. Выбери подходящий продукт.");
+    } catch {
+      setNutritionSearchStatus("Не удалось подключиться к справочнику. Проверь интернет или попробуй позже.");
+    }
+  }
+
+  function saveNutritionSuggestion(productName, nutrition) {
+    const key = normalizeIngredient(productName);
+
+    if (!key) return;
+
+    const newItem = {
+      ...nutrition,
+      displayName: nutrition.displayName || productName,
+    };
+
+    NUTRITION_DB[key] = newItem;
+
+    setCustomNutritionDb((current) => ({
+      ...current,
+      [key]: newItem,
+    }));
+
+    setNutritionSuggestions([]);
+    setNutritionSearchStatus(`Добавлено в справочник: ${newItem.displayName}.`);
+  }
+
+  function addIngredientToRecipeForm(event) {
+    event.preventDefault();
+
+    const item = makeIngredient(
+      recipeIngredientForm.name,
+      recipeIngredientForm.amount,
+      recipeIngredientForm.unit
+    );
+
+    if (!item || item.amount <= 0) return;
+
+    const line = ingredientToInputLine(item);
+
+    setForm((current) => ({
+      ...current,
+      ingredients: current.ingredients ? `${current.ingredients}\n${line}` : line,
+    }));
+
+    setRecipeIngredientForm({
+      name: "",
+      amount: "",
+      unit: recipeIngredientForm.unit,
+    });
+  }
+
   function addPantryFromForm(event) {
     event.preventDefault();
 
@@ -1806,6 +1995,12 @@ export default function App() {
           ))}
         </nav>
 
+        <datalist id="known-products-list">
+          {getKnownProductNames().map((name) => (
+            <option key={name} value={name} />
+          ))}
+        </datalist>
+
         {activeTab === "recipes" && (
           <section className="section">
             <div className="search-box">
@@ -1952,6 +2147,88 @@ export default function App() {
                 )}
               </div>
 
+              <div className="ingredient-helper-card">
+                <div>
+                  <h3>Быстро добавить ингредиент</h3>
+                  <p className="muted">Начни вводить название — появятся подсказки из справочника. При необходимости можно подтянуть КБЖУ из открытой базы.</p>
+                </div>
+
+                <form className="ingredient-helper-form" onSubmit={addIngredientToRecipeForm}>
+                  <Field label="Ингредиент">
+                    <input
+                      className="input"
+                      list="known-products-list"
+                      value={recipeIngredientForm.name}
+                      onChange={(event) => setRecipeIngredientForm({ ...recipeIngredientForm, name: event.target.value })}
+                      placeholder="Например, брокколи"
+                    />
+                  </Field>
+
+                  <Field label="Количество">
+                    <input
+                      className="input"
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={recipeIngredientForm.amount}
+                      onChange={(event) => setRecipeIngredientForm({ ...recipeIngredientForm, amount: event.target.value })}
+                      placeholder="100"
+                    />
+                  </Field>
+
+                  <Field label="Единица">
+                    <select
+                      className="input"
+                      value={recipeIngredientForm.unit}
+                      onChange={(event) => setRecipeIngredientForm({ ...recipeIngredientForm, unit: event.target.value })}
+                    >
+                      {UNIT_OPTIONS.map((unit) => (
+                        <option key={unit} value={unit}>{unit}</option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Button type="submit">
+                    <Plus size={20} />
+                    Вставить
+                  </Button>
+                </form>
+
+                <div className="nutrition-search-row">
+                  <button
+                    type="button"
+                    className="nutrition-lookup-button"
+                    onClick={() => searchNutritionByName(recipeIngredientForm.name)}
+                  >
+                    <Database size={18} />
+                    Найти КБЖУ для ингредиента
+                  </button>
+                </div>
+              </div>
+
+              {(activeTab === "add" && (nutritionSearchStatus || nutritionSuggestions.length > 0)) && (
+                <div className="nutrition-suggestions-box">
+                  {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
+
+                  {nutritionSuggestions.length > 0 && (
+                    <div className="nutrition-suggestions-list">
+                      {nutritionSuggestions.map((suggestion) => (
+                        <button
+                          key={suggestion.id}
+                          type="button"
+                          onClick={() => saveNutritionSuggestion(suggestion.name, suggestion.nutrition)}
+                        >
+                          <strong>{suggestion.name}</strong>
+                          <span>
+                            {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="ingredients-form-grid">
                 <Field label="Ингредиенты построчно с количеством">
                   <textarea className="input textarea-small" value={form.ingredients} onChange={(event) => setForm({ ...form, ingredients: event.target.value })} placeholder={`Свекла 1 шт\nОгурец 1 шт\nАпельсин 1 шт\nРукола 50 г\nБрокколи 100 г\nОливковое масло 1 ст.л`} />
@@ -2057,6 +2334,7 @@ export default function App() {
               <Field label="Продукт">
                 <input
                   className="input"
+                  list="known-products-list"
                   value={pantryForm.name}
                   onChange={(event) => setPantryForm({ ...pantryForm, name: event.target.value })}
                   placeholder="Например, брокколи"
@@ -2089,6 +2367,17 @@ export default function App() {
               </Button>
             </form>
 
+            <div className="nutrition-search-row">
+              <button
+                type="button"
+                className="nutrition-lookup-button"
+                onClick={() => searchNutritionByName(pantryForm.name)}
+              >
+                <Database size={18} />
+                Найти КБЖУ для продукта
+              </button>
+            </div>
+
             <details className="quick-add">
               <summary>Быстро добавить списком</summary>
               <div className="add-row">
@@ -2099,6 +2388,29 @@ export default function App() {
                 </Button>
               </div>
             </details>
+
+            {(nutritionSearchStatus || nutritionSuggestions.length > 0) && (
+              <div className="nutrition-suggestions-box">
+                {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
+
+                {nutritionSuggestions.length > 0 && (
+                  <div className="nutrition-suggestions-list">
+                    {nutritionSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => saveNutritionSuggestion(suggestion.name, suggestion.nutrition)}
+                      >
+                        <strong>{suggestion.name}</strong>
+                        <span>
+                          {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="pantry-list">
               {pantry.map((item, index) => (
