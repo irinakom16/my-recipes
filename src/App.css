@@ -1527,3 +1527,540 @@ body {
     text-align: left;
   }
 }
+
+
+/* =========================================================
+   Mobile-first comfort upgrade
+   ========================================================= */
+
+@media (max-width: 760px) {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    -webkit-text-size-adjust: 100%;
+    background: #f7f3ee;
+  }
+
+  .app {
+    padding: 12px 12px 92px;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+
+  .hero {
+    padding: 20px;
+    border-radius: 24px;
+    margin-bottom: 14px;
+    display: grid;
+    gap: 16px;
+  }
+
+  .hero h1 {
+    font-size: 28px;
+    line-height: 1.1;
+    margin: 10px 0;
+    letter-spacing: -0.03em;
+  }
+
+  .hero p {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .label {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
+
+  .hero-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .button,
+  .backup-button,
+  .cancel-edit-button,
+  .image-upload-button,
+  .remove-image-button {
+    min-height: 48px;
+    width: 100%;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    border-radius: 20px;
+    gap: 10px;
+  }
+
+  .stat-card p {
+    font-size: 12px;
+  }
+
+  .stat-card strong {
+    font-size: 22px;
+  }
+
+  .stat-icon {
+    padding: 9px;
+    border-radius: 14px;
+  }
+
+  .tabs {
+    position: fixed;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    z-index: 50;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 8px;
+    border-radius: 24px;
+    box-shadow: 0 18px 45px rgba(55, 43, 30, 0.22);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .tabs button {
+    padding: 9px 6px;
+    border-radius: 16px;
+    font-size: 11px;
+    line-height: 1.1;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tabs button.active {
+    background: linear-gradient(135deg, #7ba36f, #567a57);
+    color: white;
+  }
+
+  .section {
+    margin-bottom: 16px;
+  }
+
+  .card,
+  .search-box,
+  .recipes-list-panel,
+  .empty-recipe-state,
+  .recipe-paper-card {
+    border-radius: 24px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .search-box {
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+
+  .search-box input {
+    font-size: 16px;
+  }
+
+  .recipes-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .recipes-list-panel {
+    position: static;
+    padding: 14px;
+  }
+
+  .recipes-list-heading h2 {
+    font-size: 20px;
+  }
+
+  .recipe-list-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .recipe-list-item strong {
+    font-size: 16px;
+  }
+
+  .recipe-list-item span {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .recipe-list-item b {
+    font-size: 14px;
+  }
+
+  .recipe-paper-card {
+    padding: 18px;
+  }
+
+  .recipe-paper-header {
+    display: grid;
+    gap: 12px;
+  }
+
+  .recipe-paper-header h3 {
+    font-size: 22px;
+    line-height: 1.2;
+    padding: 7px 10px;
+  }
+
+  .recipe-actions {
+    justify-content: flex-start;
+  }
+
+  .recipe-actions .icon-button {
+    min-width: 48px;
+    min-height: 44px;
+  }
+
+  .recipe-paper-description {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .recipe-paper-meta {
+    gap: 6px;
+    margin: 14px 0;
+  }
+
+  .recipe-paper-meta span {
+    font-size: 12px;
+    padding: 6px 9px;
+  }
+
+  .recipe-photo {
+    border-radius: 20px;
+    max-height: 260px;
+  }
+
+  .recipe-photo img {
+    max-height: 260px;
+  }
+
+  .nutrition-summary {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .nutrition-heading {
+    display: grid;
+    gap: 4px;
+  }
+
+  .nutrition-heading h4 {
+    font-size: 17px;
+  }
+
+  .nutrition-heading span {
+    font-size: 12px;
+  }
+
+  .macro-grid,
+  .macro-grid-big {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .nutrition-tile {
+    padding: 12px 8px;
+    border-radius: 16px;
+  }
+
+  .nutrition-tile strong {
+    font-size: 24px;
+  }
+
+  .nutrition-tile span,
+  .nutrition-tile small {
+    font-size: 12px;
+  }
+
+  .micronutrients summary,
+  .ingredient-detail-nutrients summary,
+  .quick-add summary {
+    font-size: 14px;
+    min-height: 42px;
+  }
+
+  .micro-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .micro-grid div {
+    padding: 10px 12px;
+  }
+
+  .recipe-paper-section h4 {
+    font-size: 17px;
+  }
+
+  .simple-ingredient-button {
+    padding: 12px;
+    border-radius: 16px;
+    gap: 8px;
+  }
+
+  .simple-ingredient-button .ingredient-name-text,
+  .simple-ingredient-button strong {
+    font-size: 16px;
+  }
+
+  .simple-ingredient-button b {
+    font-size: 14px;
+  }
+
+  .ingredient-detail-card {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .ingredient-detail-header h4 {
+    font-size: 18px;
+  }
+
+  .ingredient-detail-macros {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .recipe-paper-steps {
+    padding-left: 22px;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .recipe-paper-steps li {
+    font-size: 15px;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  .form {
+    gap: 14px;
+  }
+
+  .form-heading {
+    display: grid;
+    gap: 10px;
+  }
+
+  .form-heading h2,
+  .section-heading h2,
+  .card h2 {
+    font-size: 23px;
+    line-height: 1.2;
+  }
+
+  .two-columns,
+  .recipe-main-fields,
+  .recipe-main-fields.dish-type-fields,
+  .ingredients-form-grid,
+  .recognition-grid,
+  .pantry-form {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .field span {
+    font-size: 14px;
+  }
+
+  .input {
+    min-height: 48px;
+    border-radius: 16px;
+    font-size: 16px;
+    padding: 13px 14px;
+  }
+
+  textarea.input {
+    line-height: 1.45;
+  }
+
+  .textarea-small {
+    min-height: 150px;
+  }
+
+  .textarea-medium {
+    min-height: 160px;
+  }
+
+  .textarea-large {
+    min-height: 260px;
+  }
+
+  .recipe-image-field {
+    padding: 14px;
+    border-radius: 20px;
+  }
+
+  .recipe-image-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-image-preview {
+    max-width: 100%;
+  }
+
+  .pantry-list {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .pantry-item {
+    padding: 13px;
+    border-radius: 18px;
+  }
+
+  .pantry-item button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .add-row {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 10px;
+  }
+
+  .menu-list {
+    gap: 12px;
+  }
+
+  .day-card {
+    padding: 16px;
+  }
+
+  .day-card h3 {
+    font-size: 20px;
+  }
+
+  .meal-grid,
+  .meal-builder-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .meal-builder-box,
+  .meal-box {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .meal-box-header {
+    display: grid;
+    gap: 5px;
+  }
+
+  .meal-box-header label {
+    font-size: 16px;
+  }
+
+  .meal-box-header span {
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .meal-mode-switch {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .meal-mode-switch button {
+    min-height: 42px;
+    font-size: 14px;
+  }
+
+  .builder-parts {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .builder-part label {
+    font-size: 13px;
+  }
+
+  .shopping-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shopping-item {
+    padding: 14px;
+    border-radius: 18px;
+    font-size: 15px;
+  }
+
+  .shopping-item input {
+    width: 20px;
+    height: 20px;
+  }
+
+  .unit-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 13px;
+  }
+
+  .upload-box {
+    padding: 24px 16px;
+    border-radius: 22px;
+  }
+
+  .status-box {
+    border-radius: 20px;
+  }
+
+  .detected-recipes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detected-recipe-card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 390px) {
+  .tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .hero h1 {
+    font-size: 25px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .macro-grid,
+  .macro-grid-big,
+  .ingredient-detail-macros {
+    grid-template-columns: 1fr;
+  }
+}
