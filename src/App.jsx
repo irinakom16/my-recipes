@@ -173,6 +173,946 @@ const NUTRITION_DB = {
   "оливковое масло": { displayName: "Оливковое масло", calories: 884, protein: 0, fat: 100, carbs: 0, fiber: 0, sugar: 0, sodium: 2, potassium: 1, calcium: 1, iron: 0.6, magnesium: 0, vitaminC: 0, vitaminA: 0, folate: 0 },
 };
 
+const PP_NUTRITION_DB = {
+  "овсяные хлопья": {
+    "displayName": "Овсяные хлопья",
+    "calories": 389,
+    "protein": 16.9,
+    "fat": 6.9,
+    "carbs": 66.3,
+    "fiber": 10.6,
+    "sugar": 1.0,
+    "sodium": 2,
+    "potassium": 429,
+    "calcium": 54,
+    "iron": 4.7,
+    "magnesium": 177,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 56
+  },
+  "овсянка": {
+    "displayName": "Овсянка",
+    "calories": 389,
+    "protein": 16.9,
+    "fat": 6.9,
+    "carbs": 66.3,
+    "fiber": 10.6,
+    "sugar": 1.0,
+    "sodium": 2,
+    "potassium": 429,
+    "calcium": 54,
+    "iron": 4.7,
+    "magnesium": 177,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 56
+  },
+  "гречка": {
+    "displayName": "Гречка",
+    "calories": 343,
+    "protein": 13.3,
+    "fat": 3.4,
+    "carbs": 71.5,
+    "fiber": 10.0,
+    "sugar": 0,
+    "sodium": 1,
+    "potassium": 460,
+    "calcium": 18,
+    "iron": 2.2,
+    "magnesium": 231,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 30
+  },
+  "киноа": {
+    "displayName": "Киноа",
+    "calories": 368,
+    "protein": 14.1,
+    "fat": 6.1,
+    "carbs": 64.2,
+    "fiber": 7.0,
+    "sugar": 0,
+    "sodium": 5,
+    "potassium": 563,
+    "calcium": 47,
+    "iron": 4.6,
+    "magnesium": 197,
+    "vitaminC": 0,
+    "vitaminA": 1,
+    "folate": 184
+  },
+  "булгур": {
+    "displayName": "Булгур",
+    "calories": 342,
+    "protein": 12.3,
+    "fat": 1.3,
+    "carbs": 75.9,
+    "fiber": 12.5,
+    "sugar": 0.4,
+    "sodium": 17,
+    "potassium": 410,
+    "calcium": 35,
+    "iron": 2.5,
+    "magnesium": 164,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 27
+  },
+  "перловка": {
+    "displayName": "Перловка",
+    "calories": 352,
+    "protein": 9.9,
+    "fat": 1.2,
+    "carbs": 77.7,
+    "fiber": 15.6,
+    "sugar": 0.8,
+    "sodium": 9,
+    "potassium": 280,
+    "calcium": 29,
+    "iron": 2.5,
+    "magnesium": 79,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 23
+  },
+  "рис бурый": {
+    "displayName": "Рис бурый",
+    "calories": 370,
+    "protein": 7.9,
+    "fat": 2.9,
+    "carbs": 77.2,
+    "fiber": 3.5,
+    "sugar": 0.9,
+    "sodium": 7,
+    "potassium": 223,
+    "calcium": 23,
+    "iron": 1.5,
+    "magnesium": 143,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 20
+  },
+  "бурый рис": {
+    "displayName": "Бурый рис",
+    "calories": 370,
+    "protein": 7.9,
+    "fat": 2.9,
+    "carbs": 77.2,
+    "fiber": 3.5,
+    "sugar": 0.9,
+    "sodium": 7,
+    "potassium": 223,
+    "calcium": 23,
+    "iron": 1.5,
+    "magnesium": 143,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 20
+  },
+  "картофель": {
+    "displayName": "Картофель",
+    "calories": 77,
+    "protein": 2.0,
+    "fat": 0.1,
+    "carbs": 17.5,
+    "fiber": 2.2,
+    "sugar": 0.8,
+    "sodium": 6,
+    "potassium": 425,
+    "calcium": 12,
+    "iron": 0.8,
+    "magnesium": 23,
+    "vitaminC": 19.7,
+    "vitaminA": 0,
+    "folate": 15
+  },
+  "батат": {
+    "displayName": "Батат",
+    "calories": 86,
+    "protein": 1.6,
+    "fat": 0.1,
+    "carbs": 20.1,
+    "fiber": 3.0,
+    "sugar": 4.2,
+    "sodium": 55,
+    "potassium": 337,
+    "calcium": 30,
+    "iron": 0.6,
+    "magnesium": 25,
+    "vitaminC": 2.4,
+    "vitaminA": 709,
+    "folate": 11
+  },
+  "хлеб цельнозерновой": {
+    "displayName": "Хлеб цельнозерновой",
+    "calories": 247,
+    "protein": 13.0,
+    "fat": 4.2,
+    "carbs": 41.0,
+    "fiber": 7.0,
+    "sugar": 6.0,
+    "sodium": 400,
+    "potassium": 250,
+    "calcium": 107,
+    "iron": 2.5,
+    "magnesium": 76,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 44
+  },
+  "лаваш": {
+    "displayName": "Лаваш",
+    "calories": 275,
+    "protein": 9.1,
+    "fat": 1.2,
+    "carbs": 56.0,
+    "fiber": 2.2,
+    "sugar": 1.0,
+    "sodium": 530,
+    "potassium": 120,
+    "calcium": 20,
+    "iron": 2.6,
+    "magnesium": 25,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 35
+  },
+  "куриная грудка": {
+    "displayName": "Куриная грудка",
+    "calories": 165,
+    "protein": 31.0,
+    "fat": 3.6,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 74,
+    "potassium": 256,
+    "calcium": 15,
+    "iron": 1.0,
+    "magnesium": 29,
+    "vitaminC": 0,
+    "vitaminA": 6,
+    "folate": 4
+  },
+  "филе курицы": {
+    "displayName": "Филе курицы",
+    "calories": 165,
+    "protein": 31.0,
+    "fat": 3.6,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 74,
+    "potassium": 256,
+    "calcium": 15,
+    "iron": 1.0,
+    "magnesium": 29,
+    "vitaminC": 0,
+    "vitaminA": 6,
+    "folate": 4
+  },
+  "индейка": {
+    "displayName": "Индейка",
+    "calories": 135,
+    "protein": 29.0,
+    "fat": 1.7,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 65,
+    "potassium": 239,
+    "calcium": 11,
+    "iron": 1.2,
+    "magnesium": 30,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 7
+  },
+  "говядина": {
+    "displayName": "Говядина постная",
+    "calories": 217,
+    "protein": 26.1,
+    "fat": 11.8,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 60,
+    "potassium": 318,
+    "calcium": 18,
+    "iron": 2.6,
+    "magnesium": 21,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 9
+  },
+  "тунец": {
+    "displayName": "Тунец",
+    "calories": 132,
+    "protein": 28.0,
+    "fat": 1.3,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 47,
+    "potassium": 522,
+    "calcium": 37,
+    "iron": 1.3,
+    "magnesium": 50,
+    "vitaminC": 0,
+    "vitaminA": 20,
+    "folate": 2
+  },
+  "лосось": {
+    "displayName": "Лосось",
+    "calories": 208,
+    "protein": 20.4,
+    "fat": 13.4,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 59,
+    "potassium": 363,
+    "calcium": 9,
+    "iron": 0.3,
+    "magnesium": 27,
+    "vitaminC": 3.9,
+    "vitaminA": 58,
+    "folate": 25
+  },
+  "семга": {
+    "displayName": "Сёмга",
+    "calories": 208,
+    "protein": 20.4,
+    "fat": 13.4,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 59,
+    "potassium": 363,
+    "calcium": 9,
+    "iron": 0.3,
+    "magnesium": 27,
+    "vitaminC": 3.9,
+    "vitaminA": 58,
+    "folate": 25
+  },
+  "треска": {
+    "displayName": "Треска",
+    "calories": 82,
+    "protein": 17.8,
+    "fat": 0.7,
+    "carbs": 0,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 54,
+    "potassium": 413,
+    "calcium": 16,
+    "iron": 0.4,
+    "magnesium": 32,
+    "vitaminC": 1.0,
+    "vitaminA": 12,
+    "folate": 7
+  },
+  "креветки": {
+    "displayName": "Креветки",
+    "calories": 99,
+    "protein": 24.0,
+    "fat": 0.3,
+    "carbs": 0.2,
+    "fiber": 0,
+    "sugar": 0,
+    "sodium": 111,
+    "potassium": 259,
+    "calcium": 70,
+    "iron": 0.5,
+    "magnesium": 39,
+    "vitaminC": 0,
+    "vitaminA": 54,
+    "folate": 4
+  },
+  "яичный белок": {
+    "displayName": "Яичный белок",
+    "calories": 52,
+    "protein": 10.9,
+    "fat": 0.2,
+    "carbs": 0.7,
+    "fiber": 0,
+    "sugar": 0.7,
+    "sodium": 166,
+    "potassium": 163,
+    "calcium": 7,
+    "iron": 0.1,
+    "magnesium": 11,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 4
+  },
+  "творог": {
+    "displayName": "Творог 5%",
+    "calories": 121,
+    "protein": 17.0,
+    "fat": 5.0,
+    "carbs": 3.0,
+    "fiber": 0,
+    "sugar": 2.7,
+    "sodium": 40,
+    "potassium": 112,
+    "calcium": 120,
+    "iron": 0.3,
+    "magnesium": 23,
+    "vitaminC": 0,
+    "vitaminA": 50,
+    "folate": 12
+  },
+  "творог обезжиренный": {
+    "displayName": "Творог обезжиренный",
+    "calories": 80,
+    "protein": 16.5,
+    "fat": 0.5,
+    "carbs": 3.3,
+    "fiber": 0,
+    "sugar": 3.3,
+    "sodium": 42,
+    "potassium": 104,
+    "calcium": 120,
+    "iron": 0.2,
+    "magnesium": 11,
+    "vitaminC": 0,
+    "vitaminA": 5,
+    "folate": 12
+  },
+  "греческий йогурт": {
+    "displayName": "Греческий йогурт",
+    "calories": 59,
+    "protein": 10.0,
+    "fat": 0.4,
+    "carbs": 3.6,
+    "fiber": 0,
+    "sugar": 3.2,
+    "sodium": 36,
+    "potassium": 141,
+    "calcium": 110,
+    "iron": 0.1,
+    "magnesium": 11,
+    "vitaminC": 0,
+    "vitaminA": 2,
+    "folate": 7
+  },
+  "кефир": {
+    "displayName": "Кефир",
+    "calories": 52,
+    "protein": 3.3,
+    "fat": 2.5,
+    "carbs": 4.0,
+    "fiber": 0,
+    "sugar": 4.0,
+    "sodium": 40,
+    "potassium": 150,
+    "calcium": 120,
+    "iron": 0.1,
+    "magnesium": 12,
+    "vitaminC": 0.8,
+    "vitaminA": 30,
+    "folate": 5
+  },
+  "тофу": {
+    "displayName": "Тофу",
+    "calories": 76,
+    "protein": 8.1,
+    "fat": 4.8,
+    "carbs": 1.9,
+    "fiber": 0.3,
+    "sugar": 0.6,
+    "sodium": 7,
+    "potassium": 121,
+    "calcium": 350,
+    "iron": 5.4,
+    "magnesium": 30,
+    "vitaminC": 0.1,
+    "vitaminA": 0,
+    "folate": 15
+  },
+  "шпинат": {
+    "displayName": "Шпинат",
+    "calories": 23,
+    "protein": 2.9,
+    "fat": 0.4,
+    "carbs": 3.6,
+    "fiber": 2.2,
+    "sugar": 0.4,
+    "sodium": 79,
+    "potassium": 558,
+    "calcium": 99,
+    "iron": 2.7,
+    "magnesium": 79,
+    "vitaminC": 28.1,
+    "vitaminA": 469,
+    "folate": 194
+  },
+  "салат": {
+    "displayName": "Листовой салат",
+    "calories": 15,
+    "protein": 1.4,
+    "fat": 0.2,
+    "carbs": 2.9,
+    "fiber": 1.3,
+    "sugar": 0.8,
+    "sodium": 28,
+    "potassium": 194,
+    "calcium": 36,
+    "iron": 0.9,
+    "magnesium": 13,
+    "vitaminC": 9.2,
+    "vitaminA": 370,
+    "folate": 38
+  },
+  "капуста": {
+    "displayName": "Капуста белокочанная",
+    "calories": 25,
+    "protein": 1.3,
+    "fat": 0.1,
+    "carbs": 5.8,
+    "fiber": 2.5,
+    "sugar": 3.2,
+    "sodium": 18,
+    "potassium": 170,
+    "calcium": 40,
+    "iron": 0.5,
+    "magnesium": 12,
+    "vitaminC": 36.6,
+    "vitaminA": 5,
+    "folate": 43
+  },
+  "цветная капуста": {
+    "displayName": "Цветная капуста",
+    "calories": 25,
+    "protein": 1.9,
+    "fat": 0.3,
+    "carbs": 5.0,
+    "fiber": 2.0,
+    "sugar": 1.9,
+    "sodium": 30,
+    "potassium": 299,
+    "calcium": 22,
+    "iron": 0.4,
+    "magnesium": 15,
+    "vitaminC": 48.2,
+    "vitaminA": 0,
+    "folate": 57
+  },
+  "кабачок": {
+    "displayName": "Кабачок",
+    "calories": 17,
+    "protein": 1.2,
+    "fat": 0.3,
+    "carbs": 3.1,
+    "fiber": 1.0,
+    "sugar": 2.5,
+    "sodium": 8,
+    "potassium": 261,
+    "calcium": 16,
+    "iron": 0.4,
+    "magnesium": 18,
+    "vitaminC": 17.9,
+    "vitaminA": 10,
+    "folate": 24
+  },
+  "баклажан": {
+    "displayName": "Баклажан",
+    "calories": 25,
+    "protein": 1.0,
+    "fat": 0.2,
+    "carbs": 5.9,
+    "fiber": 3.0,
+    "sugar": 3.5,
+    "sodium": 2,
+    "potassium": 229,
+    "calcium": 9,
+    "iron": 0.2,
+    "magnesium": 14,
+    "vitaminC": 2.2,
+    "vitaminA": 1,
+    "folate": 22
+  },
+  "перец болгарский": {
+    "displayName": "Перец болгарский",
+    "calories": 31,
+    "protein": 1.0,
+    "fat": 0.3,
+    "carbs": 6.0,
+    "fiber": 2.1,
+    "sugar": 4.2,
+    "sodium": 4,
+    "potassium": 211,
+    "calcium": 7,
+    "iron": 0.4,
+    "magnesium": 12,
+    "vitaminC": 127.7,
+    "vitaminA": 157,
+    "folate": 46
+  },
+  "перец": {
+    "displayName": "Перец болгарский",
+    "calories": 31,
+    "protein": 1.0,
+    "fat": 0.3,
+    "carbs": 6.0,
+    "fiber": 2.1,
+    "sugar": 4.2,
+    "sodium": 4,
+    "potassium": 211,
+    "calcium": 7,
+    "iron": 0.4,
+    "magnesium": 12,
+    "vitaminC": 127.7,
+    "vitaminA": 157,
+    "folate": 46
+  },
+  "шампиньоны": {
+    "displayName": "Шампиньоны",
+    "calories": 22,
+    "protein": 3.1,
+    "fat": 0.3,
+    "carbs": 3.3,
+    "fiber": 1.0,
+    "sugar": 2.0,
+    "sodium": 5,
+    "potassium": 318,
+    "calcium": 3,
+    "iron": 0.5,
+    "magnesium": 9,
+    "vitaminC": 2.1,
+    "vitaminA": 0,
+    "folate": 17
+  },
+  "банан": {
+    "displayName": "Банан",
+    "calories": 89,
+    "protein": 1.1,
+    "fat": 0.3,
+    "carbs": 22.8,
+    "fiber": 2.6,
+    "sugar": 12.2,
+    "sodium": 1,
+    "potassium": 358,
+    "calcium": 5,
+    "iron": 0.3,
+    "magnesium": 27,
+    "vitaminC": 8.7,
+    "vitaminA": 3,
+    "folate": 20
+  },
+  "яблоко": {
+    "displayName": "Яблоко",
+    "calories": 52,
+    "protein": 0.3,
+    "fat": 0.2,
+    "carbs": 13.8,
+    "fiber": 2.4,
+    "sugar": 10.4,
+    "sodium": 1,
+    "potassium": 107,
+    "calcium": 6,
+    "iron": 0.1,
+    "magnesium": 5,
+    "vitaminC": 4.6,
+    "vitaminA": 3,
+    "folate": 3
+  },
+  "груша": {
+    "displayName": "Груша",
+    "calories": 57,
+    "protein": 0.4,
+    "fat": 0.1,
+    "carbs": 15.2,
+    "fiber": 3.1,
+    "sugar": 9.8,
+    "sodium": 1,
+    "potassium": 116,
+    "calcium": 9,
+    "iron": 0.2,
+    "magnesium": 7,
+    "vitaminC": 4.3,
+    "vitaminA": 1,
+    "folate": 7
+  },
+  "клубника": {
+    "displayName": "Клубника",
+    "calories": 32,
+    "protein": 0.7,
+    "fat": 0.3,
+    "carbs": 7.7,
+    "fiber": 2.0,
+    "sugar": 4.9,
+    "sodium": 1,
+    "potassium": 153,
+    "calcium": 16,
+    "iron": 0.4,
+    "magnesium": 13,
+    "vitaminC": 58.8,
+    "vitaminA": 1,
+    "folate": 24
+  },
+  "черника": {
+    "displayName": "Черника",
+    "calories": 57,
+    "protein": 0.7,
+    "fat": 0.3,
+    "carbs": 14.5,
+    "fiber": 2.4,
+    "sugar": 10.0,
+    "sodium": 1,
+    "potassium": 77,
+    "calcium": 6,
+    "iron": 0.3,
+    "magnesium": 6,
+    "vitaminC": 9.7,
+    "vitaminA": 3,
+    "folate": 6
+  },
+  "нут": {
+    "displayName": "Нут",
+    "calories": 364,
+    "protein": 19.3,
+    "fat": 6.0,
+    "carbs": 60.7,
+    "fiber": 17.4,
+    "sugar": 10.7,
+    "sodium": 24,
+    "potassium": 875,
+    "calcium": 105,
+    "iron": 6.2,
+    "magnesium": 115,
+    "vitaminC": 4.0,
+    "vitaminA": 3,
+    "folate": 557
+  },
+  "чечевица": {
+    "displayName": "Чечевица",
+    "calories": 352,
+    "protein": 24.6,
+    "fat": 1.1,
+    "carbs": 63.4,
+    "fiber": 10.7,
+    "sugar": 2.0,
+    "sodium": 6,
+    "potassium": 677,
+    "calcium": 35,
+    "iron": 6.5,
+    "magnesium": 47,
+    "vitaminC": 4.5,
+    "vitaminA": 2,
+    "folate": 479
+  },
+  "фасоль": {
+    "displayName": "Фасоль",
+    "calories": 333,
+    "protein": 23.4,
+    "fat": 0.8,
+    "carbs": 60.3,
+    "fiber": 15.2,
+    "sugar": 2.1,
+    "sodium": 24,
+    "potassium": 1406,
+    "calcium": 143,
+    "iron": 8.2,
+    "magnesium": 140,
+    "vitaminC": 4.5,
+    "vitaminA": 0,
+    "folate": 394
+  },
+  "авокадо": {
+    "displayName": "Авокадо",
+    "calories": 160,
+    "protein": 2.0,
+    "fat": 14.7,
+    "carbs": 8.5,
+    "fiber": 6.7,
+    "sugar": 0.7,
+    "sodium": 7,
+    "potassium": 485,
+    "calcium": 12,
+    "iron": 0.6,
+    "magnesium": 29,
+    "vitaminC": 10,
+    "vitaminA": 7,
+    "folate": 81
+  },
+  "миндаль": {
+    "displayName": "Миндаль",
+    "calories": 579,
+    "protein": 21.2,
+    "fat": 49.9,
+    "carbs": 21.6,
+    "fiber": 12.5,
+    "sugar": 4.4,
+    "sodium": 1,
+    "potassium": 733,
+    "calcium": 269,
+    "iron": 3.7,
+    "magnesium": 270,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 44
+  },
+  "грецкий орех": {
+    "displayName": "Грецкий орех",
+    "calories": 654,
+    "protein": 15.2,
+    "fat": 65.2,
+    "carbs": 13.7,
+    "fiber": 6.7,
+    "sugar": 2.6,
+    "sodium": 2,
+    "potassium": 441,
+    "calcium": 98,
+    "iron": 2.9,
+    "magnesium": 158,
+    "vitaminC": 1.3,
+    "vitaminA": 1,
+    "folate": 98
+  },
+  "арахис": {
+    "displayName": "Арахис",
+    "calories": 567,
+    "protein": 25.8,
+    "fat": 49.2,
+    "carbs": 16.1,
+    "fiber": 8.5,
+    "sugar": 4.7,
+    "sodium": 18,
+    "potassium": 705,
+    "calcium": 92,
+    "iron": 4.6,
+    "magnesium": 168,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 240
+  },
+  "семена чиа": {
+    "displayName": "Семена чиа",
+    "calories": 486,
+    "protein": 16.5,
+    "fat": 30.7,
+    "carbs": 42.1,
+    "fiber": 34.4,
+    "sugar": 0,
+    "sodium": 16,
+    "potassium": 407,
+    "calcium": 631,
+    "iron": 7.7,
+    "magnesium": 335,
+    "vitaminC": 1.6,
+    "vitaminA": 3,
+    "folate": 49
+  },
+  "лен": {
+    "displayName": "Семена льна",
+    "calories": 534,
+    "protein": 18.3,
+    "fat": 42.2,
+    "carbs": 28.9,
+    "fiber": 27.3,
+    "sugar": 1.6,
+    "sodium": 30,
+    "potassium": 813,
+    "calcium": 255,
+    "iron": 5.7,
+    "magnesium": 392,
+    "vitaminC": 0.6,
+    "vitaminA": 0,
+    "folate": 87
+  },
+  "семена льна": {
+    "displayName": "Семена льна",
+    "calories": 534,
+    "protein": 18.3,
+    "fat": 42.2,
+    "carbs": 28.9,
+    "fiber": 27.3,
+    "sugar": 1.6,
+    "sodium": 30,
+    "potassium": 813,
+    "calcium": 255,
+    "iron": 5.7,
+    "magnesium": 392,
+    "vitaminC": 0.6,
+    "vitaminA": 0,
+    "folate": 87
+  },
+  "кунжут": {
+    "displayName": "Кунжут",
+    "calories": 573,
+    "protein": 17.7,
+    "fat": 49.7,
+    "carbs": 23.4,
+    "fiber": 11.8,
+    "sugar": 0.3,
+    "sodium": 11,
+    "potassium": 468,
+    "calcium": 975,
+    "iron": 14.6,
+    "magnesium": 351,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 97
+  },
+  "арахисовая паста": {
+    "displayName": "Арахисовая паста",
+    "calories": 588,
+    "protein": 25.1,
+    "fat": 50.4,
+    "carbs": 20.0,
+    "fiber": 6.0,
+    "sugar": 9.2,
+    "sodium": 17,
+    "potassium": 649,
+    "calcium": 43,
+    "iron": 1.9,
+    "magnesium": 154,
+    "vitaminC": 0,
+    "vitaminA": 0,
+    "folate": 87
+  },
+  "мед": {
+    "displayName": "Мёд",
+    "calories": 304,
+    "protein": 0.3,
+    "fat": 0,
+    "carbs": 82.4,
+    "fiber": 0.2,
+    "sugar": 82.1,
+    "sodium": 4,
+    "potassium": 52,
+    "calcium": 6,
+    "iron": 0.4,
+    "magnesium": 2,
+    "vitaminC": 0.5,
+    "vitaminA": 0,
+    "folate": 2
+  },
+  "мёд": {
+    "displayName": "Мёд",
+    "calories": 304,
+    "protein": 0.3,
+    "fat": 0,
+    "carbs": 82.4,
+    "fiber": 0.2,
+    "sugar": 82.1,
+    "sodium": 4,
+    "potassium": 52,
+    "calcium": 6,
+    "iron": 0.4,
+    "magnesium": 2,
+    "vitaminC": 0.5,
+    "vitaminA": 0,
+    "folate": 2
+  }
+};
+
+Object.assign(NUTRITION_DB, PP_NUTRITION_DB);
+
 const NUTRIENT_LABELS = {
   calories: "ккал",
   protein: "белки, г",
@@ -882,6 +1822,24 @@ export default function App() {
   const [customNutritionDb, setCustomNutritionDb] = useState({});
   const [nutritionSearchStatus, setNutritionSearchStatus] = useState("");
   const [nutritionSuggestions, setNutritionSuggestions] = useState([]);
+  const [directoryQuery, setDirectoryQuery] = useState("");
+  const [directoryForm, setDirectoryForm] = useState({
+    name: "",
+    calories: "",
+    protein: "",
+    fat: "",
+    carbs: "",
+    fiber: "",
+    sugar: "",
+    sodium: "",
+    potassium: "",
+    calcium: "",
+    iron: "",
+    magnesium: "",
+    vitaminC: "",
+    vitaminA: "",
+    folate: "",
+  });
 
   const [form, setForm] = useState({
     title: "",
@@ -1667,6 +2625,116 @@ export default function App() {
     });
   }
 
+  const directoryProducts = useMemo(() => {
+    const query = normalizeIngredient(directoryQuery);
+
+    return getKnownProductNames()
+      .filter((name) => {
+        const item = NUTRITION_DB[name];
+        const text = `${name} ${item?.displayName || ""}`.toLowerCase();
+        return !query || text.includes(query);
+      })
+      .map((name) => ({
+        key: name,
+        ...NUTRITION_DB[name],
+        isCustom: Boolean(customNutritionDb[name]),
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }, [directoryQuery, customNutritionDb]);
+
+  function resetDirectoryForm() {
+    setDirectoryForm({
+      name: "",
+      calories: "",
+      protein: "",
+      fat: "",
+      carbs: "",
+      fiber: "",
+      sugar: "",
+      sodium: "",
+      potassium: "",
+      calcium: "",
+      iron: "",
+      magnesium: "",
+      vitaminC: "",
+      vitaminA: "",
+      folate: "",
+    });
+  }
+
+  function fillDirectoryFormFromProduct(key) {
+    const item = NUTRITION_DB[key];
+    if (!item) return;
+
+    setDirectoryForm({
+      name: key,
+      calories: item.calories ?? "",
+      protein: item.protein ?? "",
+      fat: item.fat ?? "",
+      carbs: item.carbs ?? "",
+      fiber: item.fiber ?? "",
+      sugar: item.sugar ?? "",
+      sodium: item.sodium ?? "",
+      potassium: item.potassium ?? "",
+      calcium: item.calcium ?? "",
+      iron: item.iron ?? "",
+      magnesium: item.magnesium ?? "",
+      vitaminC: item.vitaminC ?? "",
+      vitaminA: item.vitaminA ?? "",
+      folate: item.folate ?? "",
+    });
+  }
+
+  function saveDirectoryProduct(event) {
+    event.preventDefault();
+
+    const key = normalizeIngredient(directoryForm.name);
+
+    if (!key) {
+      alert("Введи название продукта.");
+      return;
+    }
+
+    const item = {
+      displayName: directoryForm.name.trim(),
+      calories: Number(directoryForm.calories) || 0,
+      protein: Number(directoryForm.protein) || 0,
+      fat: Number(directoryForm.fat) || 0,
+      carbs: Number(directoryForm.carbs) || 0,
+      fiber: Number(directoryForm.fiber) || 0,
+      sugar: Number(directoryForm.sugar) || 0,
+      sodium: Number(directoryForm.sodium) || 0,
+      potassium: Number(directoryForm.potassium) || 0,
+      calcium: Number(directoryForm.calcium) || 0,
+      iron: Number(directoryForm.iron) || 0,
+      magnesium: Number(directoryForm.magnesium) || 0,
+      vitaminC: Number(directoryForm.vitaminC) || 0,
+      vitaminA: Number(directoryForm.vitaminA) || 0,
+      folate: Number(directoryForm.folate) || 0,
+    };
+
+    NUTRITION_DB[key] = item;
+
+    setCustomNutritionDb((current) => ({
+      ...current,
+      [key]: item,
+    }));
+
+    setNutritionSearchStatus(`Сохранено в справочник: ${item.displayName}.`);
+    setDirectoryQuery(key);
+  }
+
+  function deleteCustomDirectoryProduct(key) {
+    if (!customNutritionDb[key]) return;
+
+    const next = { ...customNutritionDb };
+    delete next[key];
+
+    delete NUTRITION_DB[key];
+
+    setCustomNutritionDb(next);
+  }
+
   function applyProductNameSuggestion(name, target = "pantry") {
     if (target === "recipe") {
       setRecipeIngredientForm((current) => ({
@@ -1988,6 +3056,7 @@ export default function App() {
             ["menu", "Меню"],
             ["shopping", "Покупки"],
             ["units", "Единицы"],
+            ["directory", "Справочник"],
           ].map(([id, label]) => (
             <button key={id} onClick={() => setActiveTab(id)} className={activeTab === id ? "active" : ""}>
               {label}
@@ -2546,6 +3615,181 @@ export default function App() {
                 ))}
               </div>
             )}
+          </section>
+        )}
+
+        {activeTab === "directory" && (
+          <section className="card section">
+            <div className="section-heading">
+              <div>
+                <h2>Справочник продуктов</h2>
+                <p className="muted">
+                  Здесь можно пополнять базу продуктов. Все значения указываются на 100 г продукта.
+                  Пользовательские продукты сохраняются в backup.
+                </p>
+              </div>
+            </div>
+
+            <div className="directory-layout">
+              <form className="directory-form" onSubmit={saveDirectoryProduct}>
+                <h3>Добавить или изменить продукт</h3>
+
+                <Field label="Название продукта">
+                  <input
+                    className="input"
+                    list="known-products-list"
+                    value={directoryForm.name}
+                    onChange={(event) =>
+                      setDirectoryForm({ ...directoryForm, name: event.target.value })
+                    }
+                    placeholder="Например, протеин"
+                  />
+                </Field>
+
+                <div className="nutrition-search-row">
+                  <button
+                    type="button"
+                    className="nutrition-lookup-button"
+                    onClick={() => searchNutritionByName(directoryForm.name)}
+                  >
+                    <Database size={18} />
+                    Найти в Open Food Facts
+                  </button>
+                </div>
+
+                {(nutritionSearchStatus || nutritionSuggestions.length > 0) && (
+                  <div className="nutrition-suggestions-box">
+                    {nutritionSearchStatus && <p>{nutritionSearchStatus}</p>}
+
+                    {nutritionSuggestions.length > 0 && (
+                      <div className="nutrition-suggestions-list">
+                        {nutritionSuggestions.map((suggestion) => (
+                          <button
+                            key={suggestion.id}
+                            type="button"
+                            onClick={() => {
+                              saveNutritionSuggestion(suggestion.name, suggestion.nutrition);
+                              setDirectoryForm({
+                                name: normalizeIngredient(suggestion.name),
+                                calories: suggestion.nutrition.calories,
+                                protein: suggestion.nutrition.protein,
+                                fat: suggestion.nutrition.fat,
+                                carbs: suggestion.nutrition.carbs,
+                                fiber: suggestion.nutrition.fiber,
+                                sugar: suggestion.nutrition.sugar,
+                                sodium: suggestion.nutrition.sodium,
+                                potassium: suggestion.nutrition.potassium,
+                                calcium: suggestion.nutrition.calcium,
+                                iron: suggestion.nutrition.iron,
+                                magnesium: suggestion.nutrition.magnesium,
+                                vitaminC: suggestion.nutrition.vitaminC,
+                                vitaminA: suggestion.nutrition.vitaminA,
+                                folate: suggestion.nutrition.folate,
+                              });
+                            }}
+                          >
+                            <strong>{suggestion.name}</strong>
+                            <span>
+                              {suggestion.nutrition.calories} ккал · Б {suggestion.nutrition.protein} · Ж {suggestion.nutrition.fat} · У {suggestion.nutrition.carbs}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="directory-nutrients-grid">
+                  {[
+                    ["calories", "Ккал"],
+                    ["protein", "Белки, г"],
+                    ["fat", "Жиры, г"],
+                    ["carbs", "Углеводы, г"],
+                    ["fiber", "Клетчатка, г"],
+                    ["sugar", "Сахар, г"],
+                    ["sodium", "Натрий, мг"],
+                    ["potassium", "Калий, мг"],
+                    ["calcium", "Кальций, мг"],
+                    ["iron", "Железо, мг"],
+                    ["magnesium", "Магний, мг"],
+                    ["vitaminC", "Витамин C, мг"],
+                    ["vitaminA", "Витамин A, мкг"],
+                    ["folate", "Фолаты, мкг"],
+                  ].map(([key, label]) => (
+                    <Field key={key} label={label}>
+                      <input
+                        className="input"
+                        type="number"
+                        step="0.01"
+                        value={directoryForm[key]}
+                        onChange={(event) =>
+                          setDirectoryForm({
+                            ...directoryForm,
+                            [key]: event.target.value,
+                          })
+                        }
+                      />
+                    </Field>
+                  ))}
+                </div>
+
+                <div className="directory-actions">
+                  <Button type="submit">
+                    <Save size={20} />
+                    Сохранить продукт
+                  </Button>
+
+                  <button type="button" className="backup-button" onClick={resetDirectoryForm}>
+                    Очистить форму
+                  </button>
+                </div>
+              </form>
+
+              <div className="directory-list-panel">
+                <div className="search-box">
+                  <Search size={20} />
+                  <input
+                    value={directoryQuery}
+                    onChange={(event) => setDirectoryQuery(event.target.value)}
+                    placeholder="Поиск по справочнику..."
+                  />
+                </div>
+
+                <div className="directory-list">
+                  {directoryProducts.map((product) => (
+                    <div key={product.key} className="directory-product-card">
+                      <div>
+                        <strong>{product.displayName || product.key}</strong>
+                        <span>{product.key}</span>
+                      </div>
+
+                      <div className="directory-product-macros">
+                        <span>{product.calories} ккал</span>
+                        <span>Б {product.protein}</span>
+                        <span>Ж {product.fat}</span>
+                        <span>У {product.carbs}</span>
+                      </div>
+
+                      <div className="directory-product-actions">
+                        <button type="button" onClick={() => fillDirectoryFormFromProduct(product.key)}>
+                          Изменить
+                        </button>
+
+                        {product.isCustom && (
+                          <button
+                            type="button"
+                            className="danger"
+                            onClick={() => deleteCustomDirectoryProduct(product.key)}
+                          >
+                            Удалить
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </section>
         )}
 

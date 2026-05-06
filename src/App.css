@@ -2291,3 +2291,120 @@ body {
     justify-content: center;
   }
 }
+
+
+/* Nutrition directory */
+.directory-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 520px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.directory-form,
+.directory-list-panel {
+  background: #fffdf8;
+  border: 1px solid #eee7df;
+  border-radius: 24px;
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.directory-form h3 {
+  margin: 0;
+}
+
+.directory-nutrients-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.directory-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.directory-list {
+  display: grid;
+  gap: 10px;
+  max-height: 760px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.directory-product-card {
+  background: white;
+  border: 1px solid #eee7df;
+  border-radius: 18px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.directory-product-card > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.directory-product-card strong {
+  color: #263238;
+  font-size: 16px;
+}
+
+.directory-product-card span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.directory-product-macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.directory-product-macros span {
+  background: var(--primary-soft, #edf5e9);
+  color: var(--primary-dark, #4f7452);
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-weight: 700;
+}
+
+.directory-product-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.directory-product-actions button {
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 11px;
+  cursor: pointer;
+  background: #f5f1eb;
+  color: #4f7452;
+  font-weight: 700;
+}
+
+.directory-product-actions button.danger {
+  background: #fff1ea;
+  color: #a45f45;
+}
+
+@media (max-width: 900px) {
+  .directory-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .directory-nutrients-grid,
+  .directory-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .directory-list {
+    max-height: none;
+  }
+}
