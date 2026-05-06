@@ -4216,3 +4216,221 @@ body {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+
+
+/* =========================================================
+   Milk landing redesign + no stat blocks + textless generated images
+   ========================================================= */
+
+:root {
+  --milk: #F7F5EF;
+  --milk-2: #EDE8DE;
+  --sage: #B8CDB0;
+  --sage-deep: #8D9983;
+  --taupe: #A39D91;
+  --dark-sage: #52604F;
+  --forest: #26382B;
+  --cream: #FFFDF8;
+  --line: #DDD7CD;
+  --ink: #26382B;
+  --muted-ink: #6F7068;
+  --surface: #FFFDF8;
+  --page: #F7F5EF;
+  --primary: #8D9983;
+  --primary-dark: #26382B;
+  --primary-soft: #EEF2EA;
+  --accent: #A39D91;
+  --accent-soft: #ECE6DC;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 12%, rgba(184, 205, 176, 0.46), transparent 24%),
+    radial-gradient(circle at 92% 18%, rgba(163, 157, 145, 0.28), transparent 26%),
+    linear-gradient(180deg, #F7F5EF 0%, #F2EEE6 100%) !important;
+  color: var(--ink);
+}
+
+.container {
+  max-width: 1220px;
+}
+
+.hero {
+  grid-template-columns: 1fr auto !important;
+  min-height: 108px;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.92), rgba(237, 232, 222, 0.88)),
+    radial-gradient(circle at left center, rgba(184, 205, 176, 0.42), transparent 40%) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 16px 38px rgba(38, 56, 43, 0.10) !important;
+  border-radius: 30px !important;
+}
+
+.hero-title-only {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-title-only h1,
+.hero h1 {
+  width: 100%;
+  text-align: center !important;
+  white-space: nowrap;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 4vw, 52px) !important;
+  line-height: 1 !important;
+  color: var(--forest) !important;
+  margin: 0 !important;
+  letter-spacing: -0.045em;
+}
+
+.hero p,
+.hero .label {
+  display: none !important;
+}
+
+/* Hide old stat blocks completely */
+.stats-grid,
+.quick-menu-grid {
+  display: none !important;
+}
+
+/* Big section buttons centered */
+.tabs.home-tile-menu {
+  grid-template-columns: repeat(7, minmax(110px, 1fr)) !important;
+  margin-top: 8px !important;
+  margin-bottom: 18px !important;
+}
+
+.tabs.home-tile-menu button {
+  min-height: 82px !important;
+  background: rgba(255, 253, 248, 0.86) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 12px 26px rgba(38, 56, 43, 0.08) !important;
+}
+
+.tabs.home-tile-menu button span {
+  text-align: center !important;
+  justify-self: center !important;
+  align-self: center !important;
+  color: inherit !important;
+}
+
+.tabs.home-tile-menu button svg {
+  color: var(--sage-deep) !important;
+}
+
+.tabs.home-tile-menu button.active {
+  background: linear-gradient(135deg, var(--sage-deep), var(--forest)) !important;
+  color: var(--cream) !important;
+}
+
+.tabs.home-tile-menu button.active svg {
+  color: var(--cream) !important;
+}
+
+/* Softer cards */
+.card,
+.search-box,
+.recipe-gallery-card,
+.recipe-compact-page,
+.directory-form,
+.directory-list-panel,
+.week-planner-card,
+.week-history,
+.compact-column,
+.ingredient-helper-card,
+.nutrition-suggestions-box {
+  background: rgba(255, 253, 248, 0.92) !important;
+  border-color: var(--line) !important;
+  box-shadow: 0 12px 28px rgba(38, 56, 43, 0.08) !important;
+}
+
+.button.primary,
+.fill-week-button,
+.nutrition-tile.calories {
+  background: linear-gradient(135deg, var(--sage-deep), var(--forest)) !important;
+  color: var(--cream) !important;
+}
+
+.button.secondary,
+.back-to-recipes-button,
+.bought-button,
+.open-menu-recipe-icon,
+.stat-icon,
+.nutrition-lookup-button {
+  background: var(--primary-soft) !important;
+  color: var(--forest) !important;
+}
+
+.input {
+  background: #F2EEE6 !important;
+}
+
+.input:focus {
+  border-color: var(--sage-deep) !important;
+  background: var(--cream) !important;
+}
+
+/* Generated/recipe image presentation */
+.recipe-gallery-image,
+.recipe-compact-photo {
+  background: var(--milk-2) !important;
+}
+
+.recipe-gallery-image img,
+.recipe-compact-photo img {
+  object-fit: cover;
+}
+
+/* Center headings */
+.section-heading,
+.section-heading h2,
+.card > h2,
+.section h2,
+.compact-column h3,
+.directory-form h3,
+.day-card h3,
+.recipe-compact-header h3 {
+  text-align: center !important;
+}
+
+@media (max-width: 980px) {
+  .tabs.home-tile-menu {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    grid-template-columns: 1fr !important;
+    min-height: auto;
+    padding: 18px 16px !important;
+  }
+
+  .hero-title-only h1,
+  .hero h1 {
+    white-space: normal;
+    font-size: 31px !important;
+  }
+
+  .hero-actions {
+    margin-top: 12px;
+  }
+
+  .tabs.home-tile-menu {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .tabs.home-tile-menu button {
+    min-height: 72px !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .tabs.home-tile-menu {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

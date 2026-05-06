@@ -1643,59 +1643,52 @@ function getDishTypeLabel(value) {
 }
 
 function generateRecipeImage(recipe) {
-  const title = recipe?.title || "Рецепт";
-  const dishType = getDishTypeLabel(recipe?.dishType || "any");
-  const mealType = getMealCategoryLabel(recipe?.mealCategory || "any");
-  const ingredients = (recipe?.ingredients || [])
-    .slice(0, 5)
-    .map((item) => getIngredientName(item))
-    .filter(Boolean)
-    .join(" · ");
-
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
       <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#F4F0EA"/>
-          <stop offset="42%" stop-color="#C8BDAF"/>
-          <stop offset="100%" stop-color="#223E2D"/>
+        <linearGradient id="milkBg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#F7F5EF"/>
+          <stop offset="52%" stop-color="#EAE4DA"/>
+          <stop offset="100%" stop-color="#B8CDB0"/>
         </linearGradient>
-        <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#FFFDF8"/>
-          <stop offset="100%" stop-color="#E9E1D7"/>
+        <linearGradient id="green" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#B8CDB0"/>
+          <stop offset="100%" stop-color="#8D9983"/>
+        </linearGradient>
+        <linearGradient id="dark" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#52604F"/>
+          <stop offset="100%" stop-color="#26382B"/>
         </linearGradient>
         <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="22" stdDeviation="28" flood-color="#1B2D22" flood-opacity="0.28"/>
+          <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#26382B" flood-opacity="0.18"/>
         </filter>
       </defs>
 
-      <rect width="900" height="900" fill="url(#bg)"/>
-      <rect x="0" y="0" width="900" height="260" fill="#8B6A50" opacity="0.72"/>
-      <rect x="0" y="260" width="900" height="230" fill="#F4F0EA"/>
-      <rect x="0" y="490" width="900" height="190" fill="#7E8769"/>
-      <rect x="0" y="680" width="900" height="220" fill="#223E2D"/>
+      <rect width="900" height="900" fill="url(#milkBg)"/>
 
-      <circle cx="705" cy="178" r="98" fill="#B59A61" opacity="0.86"/>
-      <circle cx="708" cy="178" r="64" fill="#F6F0E7" opacity="0.96"/>
-      <path d="M690 120 C760 160 760 250 690 290 C620 250 620 160 690 120Z" fill="#7E8769" opacity="0.9"/>
+      <circle cx="150" cy="140" r="116" fill="#B8CDB0" opacity="0.62"/>
+      <circle cx="760" cy="160" r="86" fill="#D8CBBB" opacity="0.65"/>
+      <circle cx="115" cy="745" r="148" fill="#EDE8DE" opacity="0.92"/>
+      <circle cx="760" cy="740" r="128" fill="#8D9983" opacity="0.30"/>
+
+      <path d="M80 350 C175 270 285 295 350 380 C420 475 575 448 665 355 C735 285 812 330 820 430 C832 575 655 650 485 625 C315 600 184 690 102 590 C40 514 20 410 80 350Z" fill="#FFFDF8" opacity="0.82"/>
 
       <g filter="url(#shadow)">
-        <rect x="86" y="156" width="728" height="588" rx="54" fill="url(#card)"/>
+        <circle cx="450" cy="460" r="210" fill="#FFFDF8"/>
+        <circle cx="450" cy="460" r="156" fill="#F0ECE3"/>
+        <circle cx="450" cy="460" r="112" fill="url(#green)" opacity="0.78"/>
       </g>
 
-      <rect x="128" y="198" width="644" height="94" rx="28" fill="#7E8769"/>
-      <text x="450" y="258" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="#FFFDF8" font-weight="700">${escapeSvg(title).slice(0, 34)}</text>
+      <path d="M344 430 C388 360 485 348 556 414 C620 474 592 565 510 594 C425 625 337 582 324 505 C319 475 326 450 344 430Z" fill="#FFFFFF" opacity="0.86"/>
+      <path d="M394 388 C452 292 574 312 622 402 C540 418 464 412 394 388Z" fill="#26382B" opacity="0.84"/>
+      <path d="M284 520 C354 475 432 492 476 562 C390 592 320 582 284 520Z" fill="#B8CDB0" opacity="0.90"/>
+      <path d="M522 570 C576 488 684 500 724 574 C645 602 580 600 522 570Z" fill="#8D9983" opacity="0.78"/>
 
-      <text x="450" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#8B6A50">${escapeSvg(mealType)} · ${escapeSvg(dishType)}</text>
-
-      <circle cx="450" cy="480" r="112" fill="#B59A61" opacity="0.32"/>
-      <circle cx="450" cy="480" r="86" fill="#FFFDF8"/>
-      <circle cx="450" cy="480" r="58" fill="#7E8769" opacity="0.88"/>
-      <path d="M410 470 C435 425 485 425 510 470 C493 520 427 520 410 470Z" fill="#F4F0EA"/>
-      <path d="M438 435 C470 395 515 405 530 450 C495 455 465 450 438 435Z" fill="#223E2D" opacity="0.82"/>
-
-      <text x="450" y="638" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" fill="#223E2D">${escapeSvg(ingredients).slice(0, 54)}</text>
-      <text x="450" y="688" text-anchor="middle" font-family="Georgia, serif" font-size="30" fill="#8B6A50">Меню на неделю</text>
+      <rect x="0" y="720" width="900" height="180" fill="url(#dark)" opacity="0.92"/>
+      <circle cx="150" cy="720" r="74" fill="#F7F5EF"/>
+      <circle cx="680" cy="720" r="74" fill="#F7F5EF"/>
+      <rect x="210" y="742" width="180" height="86" rx="43" fill="#B8CDB0" opacity="0.72"/>
+      <rect x="430" y="742" width="260" height="86" rx="43" fill="#D8CBBB" opacity="0.72"/>
     </svg>
   `;
 
@@ -3342,13 +3335,6 @@ export default function App() {
             </label>
           </div>
         </header>
-
-        <section className="stats-grid quick-menu-grid">
-          <StatCard icon={<ChefHat />} label="Рецептов" value={recipes.length} onClick={() => setActiveTab("recipes")} />
-          <StatCard icon={<Carrot />} label="Продуктов дома" value={pantry.length} onClick={() => setActiveTab("pantry")} />
-          <StatCard icon={<CalendarDays />} label="Блюд в меню" value={Object.values(menu).flatMap((day) => Object.values(day)).filter(Boolean).length} onClick={() => setActiveTab("menu")} />
-          <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} onClick={() => setActiveTab("pantry")} />
-        </section>
 
                 <nav className="tabs home-tile-menu" aria-label="Разделы приложения">
           {[
