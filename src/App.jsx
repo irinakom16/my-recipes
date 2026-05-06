@@ -1642,6 +1642,78 @@ function getDishTypeLabel(value) {
   return DISH_TYPE_OPTIONS.find((option) => option.value === value)?.label || "Без категории";
 }
 
+function generateRecipeImage(recipe) {
+  const title = recipe?.title || "Рецепт";
+  const dishType = getDishTypeLabel(recipe?.dishType || "any");
+  const mealType = getMealCategoryLabel(recipe?.mealCategory || "any");
+  const ingredients = (recipe?.ingredients || [])
+    .slice(0, 5)
+    .map((item) => getIngredientName(item))
+    .filter(Boolean)
+    .join(" · ");
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
+      <defs>
+        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#F4F0EA"/>
+          <stop offset="42%" stop-color="#C8BDAF"/>
+          <stop offset="100%" stop-color="#223E2D"/>
+        </linearGradient>
+        <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#FFFDF8"/>
+          <stop offset="100%" stop-color="#E9E1D7"/>
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="22" stdDeviation="28" flood-color="#1B2D22" flood-opacity="0.28"/>
+        </filter>
+      </defs>
+
+      <rect width="900" height="900" fill="url(#bg)"/>
+      <rect x="0" y="0" width="900" height="260" fill="#8B6A50" opacity="0.72"/>
+      <rect x="0" y="260" width="900" height="230" fill="#F4F0EA"/>
+      <rect x="0" y="490" width="900" height="190" fill="#7E8769"/>
+      <rect x="0" y="680" width="900" height="220" fill="#223E2D"/>
+
+      <circle cx="705" cy="178" r="98" fill="#B59A61" opacity="0.86"/>
+      <circle cx="708" cy="178" r="64" fill="#F6F0E7" opacity="0.96"/>
+      <path d="M690 120 C760 160 760 250 690 290 C620 250 620 160 690 120Z" fill="#7E8769" opacity="0.9"/>
+
+      <g filter="url(#shadow)">
+        <rect x="86" y="156" width="728" height="588" rx="54" fill="url(#card)"/>
+      </g>
+
+      <rect x="128" y="198" width="644" height="94" rx="28" fill="#7E8769"/>
+      <text x="450" y="258" text-anchor="middle" font-family="Georgia, serif" font-size="42" fill="#FFFDF8" font-weight="700">${escapeSvg(title).slice(0, 34)}</text>
+
+      <text x="450" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#8B6A50">${escapeSvg(mealType)} · ${escapeSvg(dishType)}</text>
+
+      <circle cx="450" cy="480" r="112" fill="#B59A61" opacity="0.32"/>
+      <circle cx="450" cy="480" r="86" fill="#FFFDF8"/>
+      <circle cx="450" cy="480" r="58" fill="#7E8769" opacity="0.88"/>
+      <path d="M410 470 C435 425 485 425 510 470 C493 520 427 520 410 470Z" fill="#F4F0EA"/>
+      <path d="M438 435 C470 395 515 405 530 450 C495 455 465 450 438 435Z" fill="#223E2D" opacity="0.82"/>
+
+      <text x="450" y="638" text-anchor="middle" font-family="Arial, sans-serif" font-size="23" fill="#223E2D">${escapeSvg(ingredients).slice(0, 54)}</text>
+      <text x="450" y="688" text-anchor="middle" font-family="Georgia, serif" font-size="30" fill="#8B6A50">Меню на неделю</text>
+    </svg>
+  `;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function escapeSvg(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function getRecipeImage(recipe) {
+  return recipe?.image || generateRecipeImage(recipe);
+}
+
 function Button({ children, onClick, type = "button", disabled = false, variant = "primary" }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`button ${variant}`}>
@@ -1731,7 +1803,7 @@ function RecipeCard({ recipe, onDelete, onEdit }) {
             height: `${Math.max(120, Math.min(360, recipe.ingredients.length * 38))}px`,
           }}
         >
-          {recipe.image ? <img src={recipe.image} alt={recipe.title} /> : <ChefHat size={38} />}
+          {<img src={getRecipeImage(recipe)} alt={recipe.title} />}
         </div>
 
         <div className="recipe-compact-ingredients">
@@ -3249,7 +3321,7 @@ export default function App() {
               Планировщик рецептов
             </div>
 
-            <h1>Меню на неделю из твоих продуктов</h1>
+            <h1>Меню на неделю и база рецептов</h1>
 
             <p>
               Добавляй рецепты, загружай фото и PDF, учитывай граммовки, считай
@@ -3278,15 +3350,15 @@ export default function App() {
           <StatCard icon={<ShoppingBasket />} label="Нужно купить" value={shoppingList.length} onClick={() => setActiveTab("pantry")} />
         </section>
 
-        <nav className="tabs icon-tabs" aria-label="Разделы приложения">
+                <nav className="tabs home-tile-menu" aria-label="Разделы приложения">
           {[
-            ["recipes", "Рецепты", <ChefHat size={20} />],
-            ["add", "Добавить рецепт", <Plus size={20} />],
-            ["recognize", "Распознать", <Upload size={20} />],
-            ["pantry", "Дом и покупки", <ShoppingBasket size={20} />],
-            ["menu", "Меню", <CalendarDays size={20} />],
-            ["units", "Единицы", <FileText size={20} />],
-            ["directory", "Продукты", <Carrot size={20} />],
+            ["recipes", "Рецепты", <ChefHat size={26} />],
+            ["add", "Добавить рецепт", <Plus size={26} />],
+            ["recognize", "Распознать", <Upload size={26} />],
+            ["pantry", "Дом и покупки", <ShoppingBasket size={26} />],
+            ["menu", "Меню недели", <CalendarDays size={26} />],
+            ["directory", "Продукты", <Carrot size={26} />],
+            ["units", "Единицы", <FileText size={26} />],
           ].map(([id, label, icon]) => (
             <button
               key={id}
@@ -3333,11 +3405,7 @@ export default function App() {
                       onClick={() => setSelectedRecipeId(recipe.id)}
                     >
                       <div className="recipe-gallery-image">
-                        {recipe.image ? (
-                          <img src={recipe.image} alt={recipe.title} />
-                        ) : (
-                          <ChefHat size={34} />
-                        )}
+                        {<img src={getRecipeImage(recipe)} alt={recipe.title} />}
                       </div>
 
                       <div className="recipe-gallery-body">
