@@ -10,9 +10,9 @@
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         background:
-          radial-gradient(circle at top left, rgba(210, 255, 64, .20), transparent 34%),
-          linear-gradient(160deg, #052e1a 0%, #0b3d25 45%, #12351d 100%);
-        color: #fff;
+          radial-gradient(circle at 85% 6%, rgba(224, 255, 74, .32), transparent 18%),
+          linear-gradient(180deg, #f7fee7 0%, #eef7df 48%, #f4eadc 100%);
+        color: #1f2a1d;
       }
       .app {
         max-width: 720px;
@@ -20,34 +20,72 @@
         min-height: 100vh;
         padding: 24px 18px 100px;
       }
-      h1 { font-size: 34px; margin: 0 0 8px; color: #ecfccb; }
-      h2 { margin-top: 0; color: #f7ff9b; }
-      .muted { color: #d9f99d; line-height: 1.45; }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #ffffff 0%, #edf7d7 70%);
+        border: 1px solid rgba(92, 128, 52, .14);
+        border-radius: 28px;
+        padding: 24px 20px;
+        box-shadow: 0 18px 45px rgba(69, 45, 23, .10);
+      }
+      .tennis-ball {
+        position: absolute;
+        right: -18px;
+        top: -20px;
+        width: 118px;
+        height: 118px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 28%, #f7ff8a, #d9f93f 55%, #a3c614 100%);
+        box-shadow: inset -12px -14px 28px rgba(75, 92, 0, .18), 0 12px 25px rgba(97, 82, 25, .16);
+        opacity: .95;
+      }
+      .tennis-ball::before,
+      .tennis-ball::after {
+        content: "";
+        position: absolute;
+        width: 82px;
+        height: 82px;
+        border: 4px solid rgba(255,255,255,.86);
+        border-left: 0;
+        border-bottom: 0;
+        border-radius: 50%;
+      }
+      .tennis-ball::before { left: -26px; top: 18px; transform: rotate(28deg); }
+      .tennis-ball::after { right: -26px; bottom: 18px; transform: rotate(208deg); }
+      h1 { font-size: 34px; margin: 0 0 8px; color: #24411f; position: relative; z-index: 1; }
+      h2 { margin-top: 0; color: #365314; }
+      .muted { color: #53634a; line-height: 1.45; position: relative; z-index: 1; }
       .card {
-        background: rgba(10, 74, 42, .88);
-        border: 1px solid rgba(190, 242, 100, .22);
+        background: rgba(255, 255, 255, .88);
+        border: 1px solid rgba(120, 90, 64, .13);
         border-radius: 22px;
         padding: 20px;
         margin-top: 18px;
-        box-shadow: 0 18px 45px rgba(0,0,0,.22);
+        box-shadow: 0 16px 36px rgba(69, 45, 23, .09);
+      }
+      .clay-card {
+        background: linear-gradient(135deg, #fff8ed, #f1d4bd);
+        border-color: rgba(184, 91, 42, .20);
       }
       label {
         display: block;
-        color: #ecfccb;
+        color: #365314;
         margin: 14px 0 8px;
         font-size: 14px;
+        font-weight: 700;
       }
       input, textarea, select {
         width: 100%;
-        border: 1px solid rgba(190, 242, 100, .38);
-        background: rgba(4, 47, 28, .92);
-        color: #fff;
+        border: 1px solid rgba(101, 128, 82, .28);
+        background: #fbfff4;
+        color: #1f2a1d;
         border-radius: 16px;
         padding: 14px;
         font-size: 16px;
         outline: none;
       }
-      input::placeholder, textarea::placeholder { color: #86a86a; }
+      input::placeholder, textarea::placeholder { color: #8a967a; }
       textarea { min-height: 140px; resize: vertical; }
       button {
         border: 0;
@@ -55,24 +93,24 @@
         padding: 15px 18px;
         font-size: 16px;
         font-weight: 800;
-        color: #173200;
-        background: linear-gradient(135deg, #d9ff3f, #84cc16);
+        color: #fff;
+        background: linear-gradient(135deg, #b85b2a, #d98545);
         width: 100%;
         margin-top: 18px;
-        box-shadow: 0 10px 24px rgba(132, 204, 22, .25);
+        box-shadow: 0 10px 24px rgba(184, 91, 42, .22);
       }
-      .secondary { background: #25633b; color: #ecfccb; box-shadow: none; }
-      .voice-btn { margin-top: 10px; background: linear-gradient(135deg, #f7ff9b, #bef264); color: #173200; }
-      .voice-btn.recording { background: linear-gradient(135deg, #fb7185, #facc15); color: #2b1200; }
+      .secondary { background: #eef2df; color: #365314; box-shadow: none; }
+      .voice-btn { margin-top: 10px; background: linear-gradient(135deg, #d9f93f, #84ad22); color: #203400; }
+      .voice-btn.recording { background: linear-gradient(135deg, #ef7d48, #facc15); color: #2b1200; }
       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .entry-title { font-size: 18px; font-weight: 800; color: #f7ff9b; }
-      .entry-meta { color: #bbf7d0; margin-top: 6px; font-size: 14px; }
-      .entry-notes { color: #ecfccb; line-height: 1.5; margin-top: 12px; white-space: pre-wrap; }
+      .entry-title { font-size: 18px; font-weight: 800; color: #365314; }
+      .entry-meta { color: #7c5a42; margin-top: 6px; font-size: 14px; }
+      .entry-notes { color: #2f3b2a; line-height: 1.5; margin-top: 12px; white-space: pre-wrap; }
       .ai {
-        border-left: 4px solid #d9ff3f;
+        border-left: 4px solid #b85b2a;
         padding-left: 14px;
         margin-top: 14px;
-        color: #f7fee7;
+        color: #334155;
         line-height: 1.5;
       }
       nav {
@@ -80,39 +118,43 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: rgba(3, 45, 26, .97);
-        border-top: 1px solid rgba(190, 242, 100, .25);
+        background: rgba(255, 255, 255, .96);
+        border-top: 1px solid rgba(120, 90, 64, .16);
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 6px;
         padding: 10px;
+        box-shadow: 0 -12px 28px rgba(69, 45, 23, .08);
       }
       nav button {
         margin: 0;
         padding: 12px 6px;
         border-radius: 14px;
         background: transparent;
-        color: #bbf7d0;
+        color: #63705a;
         font-size: 13px;
         box-shadow: none;
       }
-      nav button.active { background: #84cc16; color: #173200; }
+      nav button.active { background: #d9f93f; color: #24411f; }
       .hidden { display: none; }
-      .stat { font-size: 26px; font-weight: 900; color: #f7ff9b; }
-      .small { font-size: 13px; color: #bbf7d0; }
-      .hint { font-size: 13px; color: #bbf7d0; margin-top: 8px; line-height: 1.4; }
+      .stat { font-size: 26px; font-weight: 900; color: #b85b2a; }
+      .small { font-size: 13px; color: #7c5a42; }
+      .hint { font-size: 13px; color: #63705a; margin-top: 8px; line-height: 1.4; }
     </style>
   </head>
   <body>
     <main class="app">
       <section id="home">
-        <h1>AI Tennis Journal</h1>
-        <p class="muted">Твой личный дневник тенниса: тренировки, матчи, мысли, самочувствие и выводы.</p>
+        <div class="hero">
+          <div class="tennis-ball"></div>
+          <h1>AI Tennis Journal</h1>
+          <p class="muted">Твой личный дневник тенниса: тренировки, матчи, мысли, самочувствие и выводы.</p>
+        </div>
         <div class="card">
           <h2>AI Coach</h2>
           <p class="muted" id="homeInsight">Заполни первую тренировку — и здесь появятся выводы по твоей игре.</p>
         </div>
-        <div class="card">
+        <div class="card clay-card">
           <h2>Фокус недели</h2>
           <p class="muted">• Стабильность первой подачи</p>
           <p class="muted">• Передвижение после удара</p>
@@ -165,7 +207,7 @@
           <div class="card"><div class="stat" id="totalEntries">0</div><div class="small">записей</div></div>
           <div class="card"><div class="stat" id="avgMood">0</div><div class="small">среднее настроение</div></div>
         </div>
-        <div class="card">
+        <div class="card clay-card">
           <h2>Weekly Review</h2>
           <p class="muted" id="weeklyReview">Добавь несколько записей, чтобы видеть недельный обзор.</p>
         </div>
@@ -185,13 +227,8 @@
       let recognition = null;
       let isRecording = false;
 
-      function getEntries() {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      }
-
-      function setEntries(entries) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-      }
+      function getEntries() { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      function setEntries(entries) { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
 
       function toggleMatchScore() {
         const entryType = document.getElementById('entryType').value;
@@ -211,17 +248,13 @@
         recognition.lang = 'ru-RU';
         recognition.interimResults = true;
         recognition.continuous = false;
-
         recognition.onresult = function(event) {
           let text = '';
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            text += event.results[i][0].transcript;
-          }
+          for (let i = event.resultIndex; i < event.results.length; i++) text += event.results[i][0].transcript;
           const notes = document.getElementById('notes');
           const prefix = notes.value.trim() ? notes.value.trim() + ' ' : '';
           notes.value = prefix + text.trim();
         };
-
         recognition.onend = function() {
           isRecording = false;
           button.classList.remove('recording');
@@ -232,10 +265,7 @@
       function toggleVoiceInput() {
         if (!recognition) return;
         const button = document.getElementById('voiceButton');
-        if (isRecording) {
-          recognition.stop();
-          return;
-        }
+        if (isRecording) { recognition.stop(); return; }
         isRecording = true;
         button.classList.add('recording');
         button.textContent = '⏹️ Остановить запись';
@@ -262,31 +292,12 @@
         const energy = document.getElementById('energy').value;
         const mood = document.getElementById('mood').value;
 
-        if (!title || !notes) {
-          alert('Заполни название and описание.');
-          return;
-        }
+        if (!title || !notes) { alert('Заполни название и описание.'); return; }
+        if (entryType === 'Матч' && !matchScore) { alert('Для матча укажи счёт игры.'); return; }
 
-        if (entryType === 'Матч' && !matchScore) {
-          alert('Для матча укажи счёт игры.');
-          return;
-        }
-
-        const entry = {
-          id: Date.now(),
-          date: new Date().toLocaleDateString('ru-RU'),
-          entryType,
-          matchScore,
-          title,
-          notes,
-          energy,
-          mood,
-        };
+        const entry = { id: Date.now(), date: new Date().toLocaleDateString('ru-RU'), entryType, matchScore, title, notes, energy, mood };
         entry.insight = makeInsight(entry);
-
-        const entries = [entry, ...getEntries()];
-        setEntries(entries);
-
+        setEntries([entry, ...getEntries()]);
         document.getElementById('title').value = '';
         document.getElementById('notes').value = '';
         document.getElementById('matchScore').value = '';
@@ -295,19 +306,14 @@
       }
 
       function showTab(id, button) {
-        ['home', 'new', 'journal', 'stats'].forEach(section => {
-          document.getElementById(section).classList.add('hidden');
-        });
+        ['home', 'new', 'journal', 'stats'].forEach(section => document.getElementById(section).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
         document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
         button.classList.add('active');
         render();
       }
 
-      function deleteEntry(id) {
-        setEntries(getEntries().filter(entry => entry.id !== id));
-        render();
-      }
+      function deleteEntry(id) { setEntries(getEntries().filter(entry => entry.id !== id)); render(); }
 
       function render() {
         toggleMatchScore();
@@ -327,18 +333,15 @@
           `;
           entriesEl.appendChild(card);
         });
-
         document.getElementById('totalEntries').textContent = entries.length;
         const avgMood = entries.length ? (entries.reduce((sum, e) => sum + Number(e.mood), 0) / entries.length).toFixed(1) : '0';
         document.getElementById('avgMood').textContent = avgMood;
-
         const latest = entries[0];
         document.getElementById('homeInsight').textContent = latest ? latest.insight : 'Заполни первую тренировку — и здесь появятся выводы по твоей игре.';
         document.getElementById('weeklyReview').textContent = entries.length
           ? `Зафиксировано записей: ${entries.length}. Среднее настроение: ${avgMood}/10. Продолжай отмечать тренировки после каждого занятия — так будет видна динамика.`
           : 'Добавь несколько записей, чтобы видеть недельный обзор.';
       }
-
       setupVoice();
       render();
     </script>
