@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import {
   Plus,
   Trash2,
@@ -26,6 +27,10 @@ import pdfWorker from "pdfjs-dist/build/pdf.worker.mjs?url";
 import "./App.css";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
+
+const SUPABASE_URL = "https://dihcwshkuyxilpnzkkju.supabase.co";
+const SUPABASE_KEY = "sb_publishable_lYvlzqhPizelHCJb_eUUjg_SZbRILax";
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const STORAGE_KEY = "my-recipes-stable-data-v1";
 
@@ -1927,6 +1932,8 @@ export default function App() {
   const [ingredientInput, setIngredientInput] = useState("");
   const [activeTab, setActiveTab] = useState("recipes");
   const [selectedRecipeId, setSelectedRecipeId] = useState(null);
+  const [cloudStatus, setCloudStatus] = useState("Облако не синхронизировано");
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
 
   const [recognitionText, setRecognitionText] = useState("");
   const [recognitionStatus, setRecognitionStatus] = useState("");
@@ -2065,6 +2072,135 @@ export default function App() {
       })
     );
   }, [recipes, pantry, menu, selectedWeekStart, menusByWeek, customNutritionDb]);
+
+  async function loadFromCloud() {
+    try {
+      setIsCloudSyncing(true);
+      setCloudStatus("Загружаю данные из облака...");
+
+      const [recipesResult, pantryResult, menusResult, productsResult] = await Promise.all([
+        supabase.from("recipes").select("*").order("created_at", { ascending: false }),
+        supabase.from("pantry").select("*").order("created_at", { ascending: true }),
+        supabase.from("weekly_menus").select("*"),
+        supabase.from("products").select("*"),
+      ]);
+
+      if (recipesResult.error) throw recipesResult.error;
+      if (pantryResult.error) throw pantryResult.error;
+      if (menusResult.error) throw menusResult.error;
+      if (productsResult.error) throw productsResult.error;
+
+      const cloudRecipes = (recipesResult.data || []).map((row) => ({
+        id: row.id,
+        ...(row.data || {}),
+      }));
+
+      const cloudPantry = (pantryResult.data || []).map((row) => ({
+        id: row.id,
+        ...(row.data || {}),
+      }));
+
+      const cloudMenus = {};
+      (menusResult.data || []).forEach((row) => {
+        cloudMenus[row.week_start] = normalizeMenu(row.data);
+      });
+
+      const cloudProducts = {};
+      (productsResult.data || []).forEach((row) => {
+        cloudProducts[row.key] = row.data;
+      });
+
+      Object.assign(NUTRITION_DB, cloudProducts);
+
+      if (cloudRecipes.length) setRecipes(cloudRecipes);
+      if (cloudPantry.length) setPantry(cloudPantry);
+      if (Object.keys(cloudMenus).length) {
+        setMenusByWeek(cloudMenus);
+        const currentWeekMenu = cloudMenus[selectedWeekStart] || Object.values(cloudMenus)[0];
+        if (currentWeekMenu) setMenu(normalizeMenu(currentWeekMenu));
+      }
+      if (Object.keys(cloudProducts).length) setCustomNutritionDb(cloudProducts);
+
+      setCloudStatus("Данные загружены из облака");
+    } catch (error) {
+      console.error(error);
+      setCloudStatus("Ошибка загрузки из облака");
+      alert("Не удалось загрузить данные из Supabase.");
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  }
+
+  async function saveToCloud() {
+    try {
+      setIsCloudSyncing(true);
+      setCloudStatus("Сохраняю данные в облако...");
+
+      const menuToSave = {
+        ...menusByWeek,
+        [selectedWeekStart]: normalizeMenu(menu),
+      };
+
+      const recipeRows = recipes.map((recipe) => ({
+        id: recipe.id,
+        title: recipe.title || "Без названия",
+        data: recipe,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const pantryRows = pantry.map((item) => ({
+        id: item.id || crypto.randomUUID(),
+        data: item,
+      }));
+
+      const menuRows = Object.entries(menuToSave).map(([weekStart, weekMenu]) => ({
+        week_start: weekStart,
+        data: normalizeMenu(weekMenu),
+        updated_at: new Date().toISOString(),
+      }));
+
+      const productRows = Object.entries(customNutritionDb).map(([key, data]) => ({
+        key,
+        data,
+        updated_at: new Date().toISOString(),
+      }));
+
+      if (recipeRows.length) {
+        const { error } = await supabase.from("recipes").upsert(recipeRows);
+        if (error) throw error;
+      }
+
+      if (pantryRows.length) {
+        const { error } = await supabase.from("pantry").upsert(pantryRows);
+        if (error) throw error;
+      }
+
+      if (menuRows.length) {
+        const { error } = await supabase.from("weekly_menus").upsert(menuRows);
+        if (error) throw error;
+      }
+
+      if (productRows.length) {
+        const { error } = await supabase.from("products").upsert(productRows);
+        if (error) throw error;
+      }
+
+      setPantry((current) =>
+        current.map((item, index) => ({
+          ...item,
+          id: pantryRows[index]?.id || item.id || crypto.randomUUID(),
+        }))
+      );
+
+      setCloudStatus("Данные сохранены в облако");
+    } catch (error) {
+      console.error(error);
+      setCloudStatus("Ошибка сохранения в облако");
+      alert("Не удалось сохранить данные в Supabase.");
+    } finally {
+      setIsCloudSyncing(false);
+    }
+  }
 
   function exportAppData() {
     const data = {
@@ -3333,6 +3469,16 @@ export default function App() {
               Импорт backup
               <input type="file" accept="application/json,.json" onChange={importAppData} />
             </label>
+
+            <button type="button" className="backup-button cloud-button" onClick={saveToCloud} disabled={isCloudSyncing}>
+              ☁ Сохранить
+            </button>
+
+            <button type="button" className="backup-button cloud-button" onClick={loadFromCloud} disabled={isCloudSyncing}>
+              ↻ Загрузить
+            </button>
+
+            <span className="cloud-status">{cloudStatus}</span>
           </div>
         </header>
 
