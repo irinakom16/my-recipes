@@ -1,7 +1,11 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { SafeAreaView, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView, Text, View } from 'react-native';
+
+import CreateEntryScreen from './screens/CreateEntryScreen';
+import EntriesScreen from './screens/EntriesScreen';
+import AIInsightCard from './components/AIInsightCard';
 
 const Tab = createBottomTabNavigator();
 
@@ -16,36 +20,35 @@ function HomeScreen() {
         Track your training, matches, mindset and progress.
       </Text>
 
+      <AIInsightCard
+        title="AI Coach Insight"
+        insight="Your consistency is improving. Focus on movement and recovery this week. Your mental stability during long rallies has improved compared to previous sessions."
+      />
+
       <View
         style={{
-          marginTop: 24,
+          marginTop: 20,
           backgroundColor: '#151B2E',
           padding: 20,
           borderRadius: 20,
         }}
       >
-        <Text style={{ color: 'white', fontSize: 20, fontWeight: '600' }}>
-          AI Coach Insight
+        <Text style={{ color: 'white', fontSize: 18, fontWeight: '600' }}>
+          Weekly Goals
         </Text>
 
-        <Text style={{ color: '#D1D5DB', marginTop: 12, lineHeight: 22 }}>
-          Your consistency is improving. Focus on movement and recovery this week.
+        <Text style={{ color: '#D1D5DB', marginTop: 10 }}>
+          • Improve first serve percentage
+        </Text>
+
+        <Text style={{ color: '#D1D5DB', marginTop: 8 }}>
+          • Work on recovery after matches
+        </Text>
+
+        <Text style={{ color: '#D1D5DB', marginTop: 8 }}>
+          • Stay aggressive on short balls
         </Text>
       </View>
-
-      <TouchableOpacity
-        style={{
-          marginTop: 24,
-          backgroundColor: '#3B82F6',
-          padding: 18,
-          borderRadius: 18,
-          alignItems: 'center',
-        }}
-      >
-        <Text style={{ color: 'white', fontWeight: '700' }}>
-          Add Training Entry
-        </Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -76,6 +79,10 @@ function StatsScreen() {
         <Text style={{ color: '#9CA3AF', marginTop: 6 }}>
           Training sessions: 6
         </Text>
+
+        <Text style={{ color: '#9CA3AF', marginTop: 6 }}>
+          Average mood: 8/10
+        </Text>
       </View>
     </SafeAreaView>
   );
@@ -96,6 +103,8 @@ export default function App() {
         }}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="New Entry" component={CreateEntryScreen} />
+        <Tab.Screen name="Journal" component={EntriesScreen} />
         <Tab.Screen name="Stats" component={StatsScreen} />
       </Tab.Navigator>
     </NavigationContainer>
