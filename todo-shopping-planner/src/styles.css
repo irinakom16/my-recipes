@@ -1,0 +1,168 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #f4f5f7;
+  color: #111827;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.hero {
+  background: white;
+  border-radius: 28px;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.hero h1 {
+  margin: 12px 0;
+  font-size: 42px;
+}
+
+.badge {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  display: grid;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 20px;
+}
+
+.panel {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.05);
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.inline {
+  grid-template-columns: 1fr auto;
+}
+
+input {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+button {
+  border: 0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  background: #111827;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.list {
+  display: grid;
+  gap: 12px;
+}
+
+.item {
+  border: 1px solid #ececec;
+  border-radius: 18px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.item strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.item small {
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.icon.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.done {
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+@media (max-width: 860px) {
+  .grid,
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+}
