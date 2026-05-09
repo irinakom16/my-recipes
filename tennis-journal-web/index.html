@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Tennis Journal</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #0b1020;
+        color: #fff;
+      }
+      .app {
+        max-width: 720px;
+        margin: 0 auto;
+        min-height: 100vh;
+        padding: 24px 18px 100px;
+      }
+      h1 { font-size: 34px; margin: 0 0 8px; }
+      h2 { margin-top: 0; }
+      .muted { color: #9ca3af; line-height: 1.45; }
+      .card {
+        background: #151b2e;
+        border-radius: 22px;
+        padding: 20px;
+        margin-top: 18px;
+        box-shadow: 0 16px 40px rgba(0,0,0,.2);
+      }
+      label {
+        display: block;
+        color: #cbd5e1;
+        margin: 14px 0 8px;
+        font-size: 14px;
+      }
+      input, textarea, select {
+        width: 100%;
+        border: 1px solid #26314f;
+        background: #0f172a;
+        color: #fff;
+        border-radius: 16px;
+        padding: 14px;
+        font-size: 16px;
+        outline: none;
+      }
+      textarea { min-height: 140px; resize: vertical; }
+      button {
+        border: 0;
+        border-radius: 18px;
+        padding: 15px 18px;
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        background: #3b82f6;
+        width: 100%;
+        margin-top: 18px;
+      }
+      .secondary { background: #25304a; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .entry-title { font-size: 18px; font-weight: 700; }
+      .entry-meta { color: #94a3b8; margin-top: 6px; font-size: 14px; }
+      .entry-notes { color: #d1d5db; line-height: 1.5; margin-top: 12px; white-space: pre-wrap; }
+      .ai {
+        border-left: 4px solid #3b82f6;
+        padding-left: 14px;
+        margin-top: 14px;
+        color: #dbeafe;
+        line-height: 1.5;
+      }
+      nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(17,24,39,.96);
+        border-top: 1px solid #1f2937;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        padding: 10px;
+      }
+      nav button {
+        margin: 0;
+        padding: 12px 6px;
+        border-radius: 14px;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 13px;
+      }
+      nav button.active { background: #1d4ed8; color: #fff; }
+      .hidden { display: none; }
+      .stat { font-size: 26px; font-weight: 800; }
+      .small { font-size: 13px; color: #94a3b8; }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <section id="home">
+        <h1>AI Tennis Journal</h1>
+        <p class="muted">Твой личный дневник тенниса: тренировки, матчи, мысли, самочувствие и выводы.</p>
+        <div class="card">
+          <h2>AI Coach</h2>
+          <p class="muted" id="homeInsight">Заполни первую тренировку — и здесь появятся выводы по твоей игре.</p>
+        </div>
+        <div class="card">
+          <h2>Фокус недели</h2>
+          <p class="muted">• Стабильность первой подачи</p>
+          <p class="muted">• Передвижение после удара</p>
+          <p class="muted">• Спокойствие на важных очках</p>
+        </div>
+      </section>
+
+      <section id="new" class="hidden">
+        <h1>Новая запись</h1>
+        <div class="card">
+          <label>Тип записи</label>
+          <select id="entryType">
+            <option value="Тренировка">Тренировка</option>
+            <option value="Матч">Матч</option>
+            <option value="Мысли">Мысли</option>
+            <option value="Восстановление">Восстановление</option>
+          </select>
+          <label>Название</label>
+          <input id="title" placeholder="Например: Тренировка подачи" />
+          <div class="grid">
+            <div>
+              <label>Самочувствие 1–10</label>
+              <input id="energy" type="number" min="1" max="10" value="7" />
+            </div>
+            <div>
+              <label>Настроение 1–10</label>
+              <input id="mood" type="number" min="1" max="10" value="7" />
+            </div>
+          </div>
+          <label>Что было на тренировке / матче?</label>
+          <textarea id="notes" placeholder="Опиши, что получилось, что не получилось, мысли, счёт, соперника..."></textarea>
+          <button onclick="saveEntry()">Сохранить запись</button>
+        </div>
+      </section>
+
+      <section id="journal" class="hidden">
+        <h1>Журнал</h1>
+        <div id="entries"></div>
+      </section>
+
+      <section id="stats" class="hidden">
+        <h1>Статистика</h1>
+        <div class="grid">
+          <div class="card"><div class="stat" id="totalEntries">0</div><div class="small">записей</div></div>
+          <div class="card"><div class="stat" id="avgMood">0</div><div class="small">среднее настроение</div></div>
+        </div>
+        <div class="card">
+          <h2>Weekly Review</h2>
+          <p class="muted" id="weeklyReview">Добавь несколько записей, чтобы видеть недельный обзор.</p>
+        </div>
+      </section>
+    </main>
+
+    <nav>
+      <button class="active" onclick="showTab('home', this)">Главная</button>
+      <button onclick="showTab('new', this)">Запись</button>
+      <button onclick="showTab('journal', this)">Журнал</button>
+      <button onclick="showTab('stats', this)">Статистика</button>
+    </nav>
+
+    <script>
+      const STORAGE_KEY = 'ai-tennis-journal-entries';
+
+      function getEntries() {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      }
+
+      function setEntries(entries) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+      }
+
+      function makeInsight(entry) {
+        const energy = Number(entry.energy);
+        const mood = Number(entry.mood);
+        let insight = 'Главный вывод: ты продолжаешь накапливать тренировочную базу. ';
+        if (energy <= 5) insight += 'Обрати внимание на восстановление: возможно, нагрузка выше текущего ресурса. ';
+        if (mood <= 5) insight += 'Ментально день был непростой — запиши, что именно выбивало из фокуса. ';
+        if (entry.notes.length > 120) insight += 'Запись подробная, это поможет видеть повторяющиеся паттерны. ';
+        insight += 'Фокус на следующую тренировку: выбери одну конкретную задачу, а не пытайся улучшить всё сразу.';
+        return insight;
+      }
+
+      function saveEntry() {
+        const title = document.getElementById('title').value.trim();
+        const notes = document.getElementById('notes').value.trim();
+        const entryType = document.getElementById('entryType').value;
+        const energy = document.getElementById('energy').value;
+        const mood = document.getElementById('mood').value;
+
+        if (!title || !notes) {
+          alert('Заполни название и заметки.');
+          return;
+        }
+
+        const entry = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString('ru-RU'),
+          entryType,
+          title,
+          notes,
+          energy,
+          mood,
+        };
+        entry.insight = makeInsight(entry);
+
+        const entries = [entry, ...getEntries()];
+        setEntries(entries);
+
+        document.getElementById('title').value = '';
+        document.getElementById('notes').value = '';
+        render();
+        document.querySelectorAll('nav button')[2].click();
+      }
+
+      function showTab(id, button) {
+        ['home', 'new', 'journal', 'stats'].forEach(section => {
+          document.getElementById(section).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        render();
+      }
+
+      function deleteEntry(id) {
+        setEntries(getEntries().filter(entry => entry.id !== id));
+        render();
+      }
+
+      function render() {
+        const entries = getEntries();
+        const entriesEl = document.getElementById('entries');
+        entriesEl.innerHTML = entries.length ? '' : '<div class="card"><p class="muted">Пока записей нет. Добавь первую тренировку.</p></div>';
+        entries.forEach(entry => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="entry-title">${entry.title}</div>
+            <div class="entry-meta">${entry.date} · ${entry.entryType} · самочувствие ${entry.energy}/10 · настроение ${entry.mood}/10</div>
+            <div class="entry-notes">${entry.notes}</div>
+            <div class="ai"><b>AI-комментарий:</b><br>${entry.insight}</div>
+            <button class="secondary" onclick="deleteEntry(${entry.id})">Удалить</button>
+          `;
+          entriesEl.appendChild(card);
+        });
+
+        document.getElementById('totalEntries').textContent = entries.length;
+        const avgMood = entries.length ? (entries.reduce((sum, e) => sum + Number(e.mood), 0) / entries.length).toFixed(1) : '0';
+        document.getElementById('avgMood').textContent = avgMood;
+
+        const latest = entries[0];
+        document.getElementById('homeInsight').textContent = latest ? latest.insight : 'Заполни первую тренировку — и здесь появятся выводы по твоей игре.';
+        document.getElementById('weeklyReview').textContent = entries.length
+          ? `Зафиксировано записей: ${entries.length}. Среднее настроение: ${avgMood}/10. Продолжай отмечать тренировки после каждого занятия — так будет видна динамика.`
+          : 'Добавь несколько записей, чтобы видеть недельный обзор.';
+      }
+
+      render();
+    </script>
+  </body>
+</html>
