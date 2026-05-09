@@ -1,0 +1,194 @@
+:root {
+  --readable-text: #26382b;
+  --readable-muted: #667066;
+  --readable-surface: #fffdf8;
+  --readable-input: #f2eee6;
+  --readable-border: #ddd7cd;
+  --readable-accent: #8d9983;
+}
+
+html,
+body,
+.app,
+.container {
+  color: var(--readable-text) !important;
+}
+
+body {
+  background: #f7f5ef !important;
+}
+
+.hero,
+.card,
+.section,
+.search-box,
+.recipe-gallery-card,
+.recipe-compact-page,
+.recipe-compact-header,
+.recipe-compact-ingredients,
+.recipe-compact-steps,
+.recipe-compact-nutrition,
+.ingredient-detail-card,
+.status-box,
+.meal-box,
+.day-card,
+.week-planner-card,
+.week-history,
+.compact-column,
+.ingredients-directory-panel,
+.directory-form,
+.directory-list-panel,
+.pantry-item,
+.shopping-item,
+.detected-recipes,
+.detected-recipe-card,
+.upload-box {
+  color: var(--readable-text) !important;
+  background-color: var(--readable-surface) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+strong,
+b,
+label,
+summary,
+.field span,
+.meal-box label,
+.recipe-gallery-body strong,
+.recipe-compact-header h3,
+.recipe-compact-ingredients h4,
+.recipe-compact-steps h4,
+.ingredients-row strong {
+  color: var(--readable-text) !important;
+}
+
+p,
+span,
+small,
+.muted,
+.hero p,
+.recipe-gallery-body span,
+.recipe-gallery-body small,
+.recipe-compact-header p,
+.recipe-compact-meta span,
+.micro-grid span,
+.ingredient-detail-header p,
+.ingredients-directory-panel p,
+.ingredients-status,
+.shopping-item small,
+.pantry-item small {
+  color: var(--readable-muted) !important;
+}
+
+input,
+textarea,
+select,
+.input,
+.ingredients-form input,
+.search-box input,
+.pantry-item input,
+.pantry-item select {
+  color: var(--readable-text) !important;
+  background: var(--readable-input) !important;
+  border: 1px solid var(--readable-border) !important;
+  caret-color: var(--readable-text) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8a8f85 !important;
+  opacity: 1 !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.input:focus {
+  color: var(--readable-text) !important;
+  background: #ffffff !important;
+  border-color: var(--readable-accent) !important;
+  outline: 2px solid rgba(141, 153, 131, 0.18) !important;
+}
+
+button,
+.button,
+.backup-button,
+.icon-button,
+.open-menu-recipe-icon,
+.bought-button,
+.ingredients-actions button,
+.tabs button {
+  color: var(--readable-text) !important;
+}
+
+.button.primary,
+.tabs button.active,
+.fill-week-button,
+.ingredients-actions button:not(.secondary) {
+  color: #fffdf8 !important;
+  background: linear-gradient(135deg, #8d9983, #26382b) !important;
+}
+
+.tabs.home-tile-menu button:not(.active),
+.button.secondary,
+.backup-button,
+.ingredients-actions button.secondary,
+.icon-button,
+.open-menu-recipe-icon,
+.bought-button {
+  color: var(--readable-text) !important;
+  background: #eef2ea !important;
+}
+
+.recipe-ingredient-line,
+.simple-ingredient-button,
+.ingredients-row,
+.unit-row,
+.shopping-item.compact,
+.pantry-item.compact {
+  color: var(--readable-text) !important;
+  background: #fffdf8 !important;
+  border-color: var(--readable-border) !important;
+}
+
+.recipe-ingredient-line span,
+.recipe-ingredient-line b,
+.simple-ingredient-button span,
+.simple-ingredient-button b,
+.ingredients-row span,
+.unit-row span {
+  color: var(--readable-text) !important;
+}
+
+.recipe-ingredient-line small,
+.recipe-ingredient-line em {
+  color: #8b5e34 !important;
+}
+
+.nutrition-tile,
+.micro-grid div,
+.ingredient-detail-macros div,
+.ingredients-row.header {
+  color: var(--readable-text) !important;
+  background: #eef2ea !important;
+}
+
+.nutrition-tile.calories {
+  color: #fffdf8 !important;
+  background: linear-gradient(135deg, #8d9983, #26382b) !important;
+}
+
+.nutrition-tile.calories span,
+.nutrition-tile.calories strong,
+.nutrition-tile.calories small {
+  color: #fffdf8 !important;
+}
+
+.runtime-nutrient-badge,
+.runtime-nutrient-badge b {
+  color: inherit !important;
+}
