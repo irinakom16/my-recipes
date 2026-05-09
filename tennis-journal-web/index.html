@@ -9,7 +9,9 @@
       body {
         margin: 0;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #0b1020;
+        background:
+          radial-gradient(circle at top left, rgba(210, 255, 64, .20), transparent 34%),
+          linear-gradient(160deg, #052e1a 0%, #0b3d25 45%, #12351d 100%);
         color: #fff;
       }
       .app {
@@ -18,54 +20,59 @@
         min-height: 100vh;
         padding: 24px 18px 100px;
       }
-      h1 { font-size: 34px; margin: 0 0 8px; }
-      h2 { margin-top: 0; }
-      .muted { color: #9ca3af; line-height: 1.45; }
+      h1 { font-size: 34px; margin: 0 0 8px; color: #ecfccb; }
+      h2 { margin-top: 0; color: #f7ff9b; }
+      .muted { color: #d9f99d; line-height: 1.45; }
       .card {
-        background: #151b2e;
+        background: rgba(10, 74, 42, .88);
+        border: 1px solid rgba(190, 242, 100, .22);
         border-radius: 22px;
         padding: 20px;
         margin-top: 18px;
-        box-shadow: 0 16px 40px rgba(0,0,0,.2);
+        box-shadow: 0 18px 45px rgba(0,0,0,.22);
       }
       label {
         display: block;
-        color: #cbd5e1;
+        color: #ecfccb;
         margin: 14px 0 8px;
         font-size: 14px;
       }
       input, textarea, select {
         width: 100%;
-        border: 1px solid #26314f;
-        background: #0f172a;
+        border: 1px solid rgba(190, 242, 100, .38);
+        background: rgba(4, 47, 28, .92);
         color: #fff;
         border-radius: 16px;
         padding: 14px;
         font-size: 16px;
         outline: none;
       }
+      input::placeholder, textarea::placeholder { color: #86a86a; }
       textarea { min-height: 140px; resize: vertical; }
       button {
         border: 0;
         border-radius: 18px;
         padding: 15px 18px;
         font-size: 16px;
-        font-weight: 700;
-        color: white;
-        background: #3b82f6;
+        font-weight: 800;
+        color: #173200;
+        background: linear-gradient(135deg, #d9ff3f, #84cc16);
         width: 100%;
         margin-top: 18px;
+        box-shadow: 0 10px 24px rgba(132, 204, 22, .25);
       }
-      .secondary { background: #25304a; }
+      .secondary { background: #25633b; color: #ecfccb; box-shadow: none; }
+      .voice-btn { margin-top: 10px; background: linear-gradient(135deg, #f7ff9b, #bef264); color: #173200; }
+      .voice-btn.recording { background: linear-gradient(135deg, #fb7185, #facc15); color: #2b1200; }
       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .entry-title { font-size: 18px; font-weight: 700; }
-      .entry-meta { color: #94a3b8; margin-top: 6px; font-size: 14px; }
-      .entry-notes { color: #d1d5db; line-height: 1.5; margin-top: 12px; white-space: pre-wrap; }
+      .entry-title { font-size: 18px; font-weight: 800; color: #f7ff9b; }
+      .entry-meta { color: #bbf7d0; margin-top: 6px; font-size: 14px; }
+      .entry-notes { color: #ecfccb; line-height: 1.5; margin-top: 12px; white-space: pre-wrap; }
       .ai {
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid #d9ff3f;
         padding-left: 14px;
         margin-top: 14px;
-        color: #dbeafe;
+        color: #f7fee7;
         line-height: 1.5;
       }
       nav {
@@ -73,8 +80,8 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background: rgba(17,24,39,.96);
-        border-top: 1px solid #1f2937;
+        background: rgba(3, 45, 26, .97);
+        border-top: 1px solid rgba(190, 242, 100, .25);
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 6px;
@@ -85,13 +92,15 @@
         padding: 12px 6px;
         border-radius: 14px;
         background: transparent;
-        color: #94a3b8;
+        color: #bbf7d0;
         font-size: 13px;
+        box-shadow: none;
       }
-      nav button.active { background: #1d4ed8; color: #fff; }
+      nav button.active { background: #84cc16; color: #173200; }
       .hidden { display: none; }
-      .stat { font-size: 26px; font-weight: 800; }
-      .small { font-size: 13px; color: #94a3b8; }
+      .stat { font-size: 26px; font-weight: 900; color: #f7ff9b; }
+      .small { font-size: 13px; color: #bbf7d0; }
+      .hint { font-size: 13px; color: #bbf7d0; margin-top: 8px; line-height: 1.4; }
     </style>
   </head>
   <body>
@@ -138,7 +147,9 @@
             </div>
           </div>
           <label>Что было на тренировке / матче?</label>
-          <textarea id="notes" placeholder="Опиши, что получилось, что не получилось, мысли, счёт, соперника..."></textarea>
+          <textarea id="notes" placeholder="Опиши голосом или текстом, что получилось, что не получилось, мысли, счёт, соперника..."></textarea>
+          <button id="voiceButton" class="voice-btn" onclick="toggleVoiceInput()">🎙️ Надиктовать описание</button>
+          <p class="hint" id="voiceHint">На iPhone голосовой ввод может работать только в Safari. Если браузер не поддерживает распознавание речи, используй диктовку на клавиатуре iPhone.</p>
           <button onclick="saveEntry()">Сохранить запись</button>
         </div>
       </section>
@@ -170,6 +181,9 @@
 
     <script>
       const STORAGE_KEY = 'ai-tennis-journal-entries';
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition = null;
+      let isRecording = false;
 
       function getEntries() {
         return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -182,6 +196,50 @@
       function toggleMatchScore() {
         const entryType = document.getElementById('entryType').value;
         document.getElementById('matchScoreBlock').classList.toggle('hidden', entryType !== 'Матч');
+      }
+
+      function setupVoice() {
+        const button = document.getElementById('voiceButton');
+        const hint = document.getElementById('voiceHint');
+        if (!SpeechRecognition) {
+          button.textContent = '🎙️ Голосовой ввод недоступен в этом браузере';
+          button.disabled = true;
+          hint.textContent = 'Можно нажать в поле описания и использовать кнопку микрофона на клавиатуре iPhone.';
+          return;
+        }
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ru-RU';
+        recognition.interimResults = true;
+        recognition.continuous = false;
+
+        recognition.onresult = function(event) {
+          let text = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            text += event.results[i][0].transcript;
+          }
+          const notes = document.getElementById('notes');
+          const prefix = notes.value.trim() ? notes.value.trim() + ' ' : '';
+          notes.value = prefix + text.trim();
+        };
+
+        recognition.onend = function() {
+          isRecording = false;
+          button.classList.remove('recording');
+          button.textContent = '🎙️ Надиктовать описание';
+        };
+      }
+
+      function toggleVoiceInput() {
+        if (!recognition) return;
+        const button = document.getElementById('voiceButton');
+        if (isRecording) {
+          recognition.stop();
+          return;
+        }
+        isRecording = true;
+        button.classList.add('recording');
+        button.textContent = '⏹️ Остановить запись';
+        recognition.start();
       }
 
       function makeInsight(entry) {
@@ -205,7 +263,7 @@
         const mood = document.getElementById('mood').value;
 
         if (!title || !notes) {
-          alert('Заполни название и заметки.');
+          alert('Заполни название and описание.');
           return;
         }
 
@@ -281,6 +339,7 @@
           : 'Добавь несколько записей, чтобы видеть недельный обзор.';
       }
 
+      setupVoice();
       render();
     </script>
   </body>
