@@ -115,12 +115,16 @@
         <h1>Новая запись</h1>
         <div class="card">
           <label>Тип записи</label>
-          <select id="entryType">
+          <select id="entryType" onchange="toggleMatchScore()">
             <option value="Тренировка">Тренировка</option>
             <option value="Матч">Матч</option>
             <option value="Мысли">Мысли</option>
             <option value="Восстановление">Восстановление</option>
           </select>
+          <div id="matchScoreBlock" class="hidden">
+            <label>Счёт матча</label>
+            <input id="matchScore" placeholder="Например: 6:4 3:6 10:8" />
+          </div>
           <label>Название</label>
           <input id="title" placeholder="Например: Тренировка подачи" />
           <div class="grid">
@@ -175,10 +179,16 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
       }
 
+      function toggleMatchScore() {
+        const entryType = document.getElementById('entryType').value;
+        document.getElementById('matchScoreBlock').classList.toggle('hidden', entryType !== 'Матч');
+      }
+
       function makeInsight(entry) {
         const energy = Number(entry.energy);
         const mood = Number(entry.mood);
         let insight = 'Главный вывод: ты продолжаешь накапливать тренировочную базу. ';
+        if (entry.entryType === 'Матч' && entry.matchScore) insight += `Матч со счётом ${entry.matchScore} стоит разобрать по ключевым геймам и важным очкам. `;
         if (energy <= 5) insight += 'Обрати внимание на восстановление: возможно, нагрузка выше текущего ресурса. ';
         if (mood <= 5) insight += 'Ментально день был непростой — запиши, что именно выбивало из фокуса. ';
         if (entry.notes.length > 120) insight += 'Запись подробная, это поможет видеть повторяющиеся паттерны. ';
@@ -190,6 +200,7 @@
         const title = document.getElementById('title').value.trim();
         const notes = document.getElementById('notes').value.trim();
         const entryType = document.getElementById('entryType').value;
+        const matchScore = document.getElementById('matchScore').value.trim();
         const energy = document.getElementById('energy').value;
         const mood = document.getElementById('mood').value;
 
@@ -198,10 +209,16 @@
           return;
         }
 
+        if (entryType === 'Матч' && !matchScore) {
+          alert('Для матча укажи счёт игры.');
+          return;
+        }
+
         const entry = {
           id: Date.now(),
           date: new Date().toLocaleDateString('ru-RU'),
           entryType,
+          matchScore,
           title,
           notes,
           energy,
@@ -214,6 +231,7 @@
 
         document.getElementById('title').value = '';
         document.getElementById('notes').value = '';
+        document.getElementById('matchScore').value = '';
         render();
         document.querySelectorAll('nav button')[2].click();
       }
@@ -234,15 +252,17 @@
       }
 
       function render() {
+        toggleMatchScore();
         const entries = getEntries();
         const entriesEl = document.getElementById('entries');
         entriesEl.innerHTML = entries.length ? '' : '<div class="card"><p class="muted">Пока записей нет. Добавь первую тренировку.</p></div>';
         entries.forEach(entry => {
           const card = document.createElement('div');
           card.className = 'card';
+          const scoreText = entry.entryType === 'Матч' && entry.matchScore ? ` · счёт ${entry.matchScore}` : '';
           card.innerHTML = `
             <div class="entry-title">${entry.title}</div>
-            <div class="entry-meta">${entry.date} · ${entry.entryType} · самочувствие ${entry.energy}/10 · настроение ${entry.mood}/10</div>
+            <div class="entry-meta">${entry.date} · ${entry.entryType}${scoreText} · самочувствие ${entry.energy}/10 · настроение ${entry.mood}/10</div>
             <div class="entry-notes">${entry.notes}</div>
             <div class="ai"><b>AI-комментарий:</b><br>${entry.insight}</div>
             <button class="secondary" onclick="deleteEntry(${entry.id})">Удалить</button>
