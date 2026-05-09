@@ -5,6 +5,7 @@ import { SafeAreaView, Text, View } from 'react-native';
 
 import CreateEntryScreen from './screens/CreateEntryScreen';
 import EntriesScreen from './screens/EntriesScreen';
+import WeeklyReviewScreen from './screens/WeeklyReviewScreen';
 import AIInsightCard from './components/AIInsightCard';
 
 const Tab = createBottomTabNavigator();
@@ -105,6 +106,7 @@ export default function App() {
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="New Entry" component={CreateEntryScreen} />
         <Tab.Screen name="Journal" component={EntriesScreen} />
+        <Tab.Screen name="Weekly" component={WeeklyReviewScreen} />
         <Tab.Screen name="Stats" component={StatsScreen} />
       </Tab.Navigator>
     </NavigationContainer>
