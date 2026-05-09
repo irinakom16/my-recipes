@@ -17,7 +17,7 @@ import {
   Upload,
 } from 'lucide-react';
 
-const STORAGE_KEY = 'planner-app-v2';
+const STORAGE_KEY = 'planner-app-v3';
 
 const defaultSettings = {
   telegramBotToken: '',
@@ -45,6 +45,12 @@ const toLocalInput = (date = new Date()) => {
   return copy.toISOString().slice(0, 16);
 };
 
+function createId() {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+}
+
 function addRepeatDate(dateString, repeat) {
   if (!dateString || repeat === 'none') return '';
   const next = new Date(dateString);
@@ -54,8 +60,44 @@ function addRepeatDate(dateString, repeat) {
   return toLocalInput(next);
 }
 
-function createId() {
-  return crypto?.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+function splitTasks(text) {
+  return text
+    .replace(/\s+(и еще|ещё|потом|затем)\s+/gi, '\n')
+    .replace(/[;•]/g, '\n')
+    .split(/\n|(?:^|\s)(?:\d+\.|- )/g)
+    .map((item) => item.trim().replace(/^(и|ещё|еще)\s+/i, ''))
+    .filter((item) => item.length > 2);
+}
+
+function inferTask(text, baseForm) {
+  const lower = text.toLowerCase();
+  let category = baseForm.category;
+  let priority = baseForm.priority;
+  let date = baseForm.date || toLocalInput();
+
+  if (/купить|магазин|продукт|молоко|хлеб|аптек/i.test(lower)) category = 'Покупки';
+  if (/врач|спорт|трениров|лекарств|здоров/i.test(lower)) category = 'Здоровье';
+  if (/работ|звонок|созвон|письмо|проект|отчет|отчёт/i.test(lower)) category = 'Работа';
+  if (/срочно|важно|не забыть|обязательно/i.test(lower)) priority = 'high';
+
+  const timeMatch = lower.match(/(?:в\s*)?(\d{1,2})[:.](\d{2})|(?:в\s+)(\d{1,2})\s*(?:час|часа|часов)?/i);
+  if (timeMatch) {
+    const next = new Date(date);
+    const hours = Number(timeMatch[1] || timeMatch[3]);
+    const minutes = Number(timeMatch[2] || 0);
+    if (!Number.isNaN(hours)) {
+      next.setHours(Math.min(hours, 23), Math.min(minutes, 59), 0, 0);
+      date = toLocalInput(next);
+    }
+  }
+
+  if (/завтра/i.test(lower)) {
+    const next = new Date();
+    next.setDate(next.getDate() + 1);
+    date = toLocalInput(next);
+  }
+
+  return { text, category, priority, date };
 }
 
 function EmptyState({ icon, title, text }) {
@@ -78,6 +120,7 @@ export default function App() {
   const [settings, setSettings] = useState(defaultSettings);
   const [activeTab, setActiveTab] = useState('today');
   const [selectedDate, setSelectedDate] = useState(todayDate());
+  const [bulkText, setBulkText] = useState('');
   const [taskForm, setTaskForm] = useState({
     text: '',
     date: toLocalInput(),
@@ -96,25 +139,38 @@ export default function App() {
   const fileInput = useRef(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const data = JSON.parse(saved);
-      setTasks(data.tasks || []);
-      setPurchases(data.purchases || []);
-      setSettings({ ...defaultSettings, ...(data.settings || {}) });
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('planner-app-v2');
+      if (saved) {
+        const data = JSON.parse(saved);
+        setTasks(Array.isArray(data.tasks) ? data.tasks : []);
+        setPurchases(Array.isArray(data.purchases) ? data.purchases : []);
+        setSettings({ ...defaultSettings, ...(data.settings || {}) });
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('planner-app-v2');
     }
 
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      Notification.requestPermission();
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().catch(() => {});
     }
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      }).catch(() => {});
+    }
+
+    if ('caches' in window) {
+      caches.keys().then((keys) => keys.forEach((key) => caches.delete(key))).catch(() => {});
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, purchases, settings }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks, purchases, settings }));
+    } catch {}
   }, [tasks, purchases, settings]);
 
   useEffect(() => {
@@ -185,6 +241,8 @@ export default function App() {
     return tasks;
   }, [tasks, activeTab]);
 
+  const parsedBulkTasks = useMemo(() => splitTasks(bulkText), [bulkText]);
+
   const aiPlan = useMemo(() => {
     const open = tasks.filter((task) => !task.done);
     const urgent = open.filter((task) => task.priority === 'high');
@@ -200,16 +258,31 @@ export default function App() {
     ].filter(Boolean).join(' ');
   }, [tasks, purchases]);
 
-  const addTask = () => {
-    if (!taskForm.text.trim()) return;
-    setTasks((prev) => [{
+  const createTaskFromText = (text) => {
+    const inferred = inferTask(text, taskForm);
+    return {
       ...taskForm,
+      ...inferred,
       id: createId(),
       done: false,
       notified: false,
       createdAt: new Date().toISOString(),
-    }, ...prev]);
+    };
+  };
+
+  const addTask = () => {
+    if (!taskForm.text.trim()) return;
+    setTasks((prev) => [createTaskFromText(taskForm.text), ...prev]);
     setTaskForm({ ...taskForm, text: '', notes: '' });
+  };
+
+  const addBulkTasks = () => {
+    const items = splitTasks(bulkText || taskForm.text);
+    if (!items.length) return;
+    setTasks((prev) => [...items.map(createTaskFromText), ...prev]);
+    setBulkText('');
+    setTaskForm({ ...taskForm, text: '', notes: '' });
+    setActiveTab('all');
   };
 
   const addPurchase = () => {
@@ -240,11 +313,19 @@ export default function App() {
 
     const recognition = new SpeechRecognition();
     recognition.lang = 'ru-RU';
+    recognition.continuous = false;
+    recognition.interimResults = false;
     recognition.onstart = () => setListening(true);
     recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
     recognition.onresult = (event) => {
-      const text = event.results[0][0].transcript;
-      setTaskForm((prev) => ({ ...prev, text }));
+      const text = Array.from(event.results)
+        .map((result) => result[0]?.transcript || '')
+        .join(' ')
+        .trim();
+      const items = splitTasks(text);
+      setBulkText(items.length > 1 ? items.join('\n') : text);
+      setTaskForm((prev) => ({ ...prev, text: items[0] || text }));
     };
     recognition.start();
   };
@@ -262,10 +343,10 @@ export default function App() {
     if (!file) return;
     file.text().then((text) => {
       const data = JSON.parse(text);
-      setTasks(data.tasks || []);
-      setPurchases(data.purchases || []);
+      setTasks(Array.isArray(data.tasks) ? data.tasks : []);
+      setPurchases(Array.isArray(data.purchases) ? data.purchases : []);
       setSettings({ ...defaultSettings, ...(data.settings || {}) });
-    });
+    }).catch(() => alert('Не удалось импортировать файл.'));
   };
 
   const syncToSupabase = async () => {
@@ -334,7 +415,7 @@ export default function App() {
             <div>
               <span className="badge">PWA · дела · покупки · напоминания</span>
               <h1>Твой умный планировщик</h1>
-              <p>Красивый dashboard для задач, покупок, календаря, повторов, голосового ввода и уведомлений.</p>
+              <p>Говори или вставляй сразу несколько задач — приложение само разложит их в список.</p>
             </div>
             <div className="hero-actions">
               <button onClick={exportData}><Download size={18} /> Экспорт</button>
@@ -362,17 +443,23 @@ export default function App() {
             <section className="panel glass-panel" id="tasks">
               <div className="panel-heading">
                 <div>
-                  <span className="eyebrow">Быстрое добавление</span>
-                  <h2>Новое дело</h2>
+                  <span className="eyebrow">Голосом или списком</span>
+                  <h2>Новые дела</h2>
                 </div>
                 <ListTodo size={26} />
               </div>
               <div className="form">
                 <div className="voice-row">
-                  <input value={taskForm.text} onChange={(e) => setTaskForm({ ...taskForm, text: e.target.value })} placeholder="Например: оплатить счета в 18:00" />
-                  <button className={listening ? 'recording round-button' : 'round-button'} onClick={startVoice}><Mic size={18} /></button>
+                  <input value={taskForm.text} onChange={(e) => setTaskForm({ ...taskForm, text: e.target.value })} placeholder="Одно дело: оплатить счета в 18:00" />
+                  <button className={listening ? 'recording round-button' : 'round-button'} onClick={startVoice} title="Продиктовать задачи"><Mic size={18} /></button>
                 </div>
-                <textarea value={taskForm.notes} onChange={(e) => setTaskForm({ ...taskForm, notes: e.target.value })} placeholder="Заметки, адрес, детали..." />
+                <textarea
+                  value={bulkText}
+                  onChange={(e) => setBulkText(e.target.value)}
+                  placeholder={'Можно сразу несколько:\nкупить корм\nпозвонить врачу завтра в 10\nсрочно отправить отчет'}
+                />
+                {parsedBulkTasks.length > 1 && <div className="bulk-preview">Распознано задач: <strong>{parsedBulkTasks.length}</strong></div>}
+                <textarea value={taskForm.notes} onChange={(e) => setTaskForm({ ...taskForm, notes: e.target.value })} placeholder="Общие заметки для новых задач..." />
                 <div className="form-grid">
                   <input type="datetime-local" value={taskForm.date} onChange={(e) => setTaskForm({ ...taskForm, date: e.target.value })} />
                   <select value={taskForm.category} onChange={(e) => setTaskForm({ ...taskForm, category: e.target.value })}>{categories.map((cat) => <option key={cat}>{cat}</option>)}</select>
@@ -384,7 +471,10 @@ export default function App() {
                     <option value="monthly">Каждый месяц</option>
                   </select>
                 </div>
-                <button className="primary-action" onClick={addTask}><Plus size={18} /> Добавить дело</button>
+                <div className="dual-actions">
+                  <button className="primary-action" onClick={addTask}><Plus size={18} /> Добавить одно</button>
+                  <button className="secondary-action" onClick={addBulkTasks}><ListTodo size={18} /> Добавить списком</button>
+                </div>
               </div>
             </section>
 
