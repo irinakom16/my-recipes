@@ -9,72 +9,80 @@ function transferFileToOriginalInput(originalInput, file) {
   }
 }
 
-function fixRecipePdfUploadInputs() {
-  const inputs = Array.from(document.querySelectorAll('input[type="file"]'));
-
-  inputs.forEach((input) => {
-    if (input.closest('.import-backup')) return;
-    if (input.dataset.pdfUploadFixed === '1') return;
-
-    const uploadBox = input.closest('.upload-box') || input.parentElement;
-    if (!uploadBox) return;
-
-    input.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
-    input.removeAttribute('capture');
-    input.dataset.pdfUploadFixed = '1';
-
-    const pdfInput = document.createElement('input');
-    pdfInput.type = 'file';
-    pdfInput.accept = 'application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
-    pdfInput.className = 'pdf-real-file-input';
-    pdfInput.addEventListener('click', (event) => {
-      event.stopPropagation();
-    });
-    pdfInput.addEventListener('change', () => {
-      const file = pdfInput.files && pdfInput.files[0];
-      if (file) transferFileToOriginalInput(input, file);
-      pdfInput.value = '';
-    });
-
-    const photoInput = document.createElement('input');
-    photoInput.type = 'file';
-    photoInput.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif';
-    photoInput.className = 'pdf-real-file-input';
-    photoInput.addEventListener('click', (event) => {
-      event.stopPropagation();
-    });
-    photoInput.addEventListener('change', () => {
-      const file = photoInput.files && photoInput.files[0];
-      if (file) transferFileToOriginalInput(input, file);
-      photoInput.value = '';
-    });
-
-    const buttonRow = document.createElement('div');
-    buttonRow.className = 'pdf-picker-buttons';
-
-    const pdfButton = document.createElement('button');
-    pdfButton.type = 'button';
-    pdfButton.className = 'pdf-file-picker-helper';
-    pdfButton.textContent = 'PDF / файл';
-    pdfButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      pdfInput.click();
-    });
-
-    const photoButton = document.createElement('button');
-    photoButton.type = 'button';
-    photoButton.className = 'pdf-file-picker-helper secondary';
-    photoButton.textContent = 'Фото';
-    photoButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      photoInput.click();
-    });
-
-    buttonRow.append(pdfButton, photoButton, pdfInput, photoInput);
-    uploadBox.appendChild(buttonRow);
+function getMainRecipeFileInput() {
+  return Array.from(document.querySelectorAll('input[type="file"]')).find((input) => {
+    if (input.closest('.import-backup')) return false;
+    if (input.classList.contains('pdf-real-file-input')) return false;
+    return Boolean(input.closest('.upload-box') || input.parentElement);
   });
+}
+
+function cleanDuplicatePdfButtons(uploadBox) {
+  const rows = Array.from(uploadBox.querySelectorAll('.pdf-picker-buttons'));
+  rows.slice(1).forEach((row) => row.remove());
+}
+
+function fixRecipePdfUploadInputs() {
+  const input = getMainRecipeFileInput();
+  if (!input) return;
+
+  const uploadBox = input.closest('.upload-box') || input.parentElement;
+  if (!uploadBox) return;
+
+  cleanDuplicatePdfButtons(uploadBox);
+
+  input.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
+  input.removeAttribute('capture');
+
+  if (uploadBox.querySelector('.pdf-picker-buttons')) return;
+
+  const pdfInput = document.createElement('input');
+  pdfInput.type = 'file';
+  pdfInput.accept = 'application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
+  pdfInput.className = 'pdf-real-file-input';
+  pdfInput.addEventListener('click', (event) => event.stopPropagation());
+  pdfInput.addEventListener('change', () => {
+    const file = pdfInput.files && pdfInput.files[0];
+    if (file) transferFileToOriginalInput(input, file);
+    pdfInput.value = '';
+  });
+
+  const photoInput = document.createElement('input');
+  photoInput.type = 'file';
+  photoInput.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif';
+  photoInput.className = 'pdf-real-file-input';
+  photoInput.addEventListener('click', (event) => event.stopPropagation());
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files && photoInput.files[0];
+    if (file) transferFileToOriginalInput(input, file);
+    photoInput.value = '';
+  });
+
+  const buttonRow = document.createElement('div');
+  buttonRow.className = 'pdf-picker-buttons';
+
+  const pdfButton = document.createElement('button');
+  pdfButton.type = 'button';
+  pdfButton.className = 'pdf-file-picker-helper';
+  pdfButton.textContent = 'PDF / файл';
+  pdfButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    pdfInput.click();
+  });
+
+  const photoButton = document.createElement('button');
+  photoButton.type = 'button';
+  photoButton.className = 'pdf-file-picker-helper secondary';
+  photoButton.textContent = 'Фото';
+  photoButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    photoInput.click();
+  });
+
+  buttonRow.append(pdfButton, photoButton, pdfInput, photoInput);
+  uploadBox.appendChild(buttonRow);
 }
 
 function addPdfUploadFixStyle() {
