@@ -1,3 +1,14 @@
+function transferFileToOriginalInput(originalInput, file) {
+  try {
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    originalInput.files = dataTransfer.files;
+    originalInput.dispatchEvent(new Event('change', { bubbles: true }));
+  } catch (error) {
+    alert('Файл выбран, но браузер не разрешил передать его в приложение. Попробуй открыть сайт в Chrome или Safari через меню «Файлы».');
+  }
+}
+
 function fixRecipePdfUploadInputs() {
   const inputs = Array.from(document.querySelectorAll('input[type="file"]'));
 
@@ -8,21 +19,61 @@ function fixRecipePdfUploadInputs() {
     const uploadBox = input.closest('.upload-box') || input.parentElement;
     if (!uploadBox) return;
 
-    input.accept = 'application/pdf,.pdf,image/*,.jpg,.jpeg,.png,.webp,.heic,.heif';
+    input.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif,application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
     input.removeAttribute('capture');
     input.dataset.pdfUploadFixed = '1';
 
-    const helper = document.createElement('button');
-    helper.type = 'button';
-    helper.className = 'pdf-file-picker-helper';
-    helper.textContent = 'Выбрать PDF / файл';
-    helper.addEventListener('click', (event) => {
-      event.preventDefault();
+    const pdfInput = document.createElement('input');
+    pdfInput.type = 'file';
+    pdfInput.accept = 'application/pdf,.pdf,text/plain,.txt,text/markdown,.md';
+    pdfInput.className = 'pdf-real-file-input';
+    pdfInput.addEventListener('click', (event) => {
       event.stopPropagation();
-      input.click();
+    });
+    pdfInput.addEventListener('change', () => {
+      const file = pdfInput.files && pdfInput.files[0];
+      if (file) transferFileToOriginalInput(input, file);
+      pdfInput.value = '';
     });
 
-    uploadBox.appendChild(helper);
+    const photoInput = document.createElement('input');
+    photoInput.type = 'file';
+    photoInput.accept = 'image/*,.jpg,.jpeg,.png,.webp,.heic,.heif';
+    photoInput.className = 'pdf-real-file-input';
+    photoInput.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+    photoInput.addEventListener('change', () => {
+      const file = photoInput.files && photoInput.files[0];
+      if (file) transferFileToOriginalInput(input, file);
+      photoInput.value = '';
+    });
+
+    const buttonRow = document.createElement('div');
+    buttonRow.className = 'pdf-picker-buttons';
+
+    const pdfButton = document.createElement('button');
+    pdfButton.type = 'button';
+    pdfButton.className = 'pdf-file-picker-helper';
+    pdfButton.textContent = 'PDF / файл';
+    pdfButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      pdfInput.click();
+    });
+
+    const photoButton = document.createElement('button');
+    photoButton.type = 'button';
+    photoButton.className = 'pdf-file-picker-helper secondary';
+    photoButton.textContent = 'Фото';
+    photoButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      photoInput.click();
+    });
+
+    buttonRow.append(pdfButton, photoButton, pdfInput, photoInput);
+    uploadBox.appendChild(buttonRow);
   });
 }
 
@@ -32,17 +83,33 @@ function addPdfUploadFixStyle() {
   const style = document.createElement('style');
   style.id = 'pdf-upload-fix-style';
   style.textContent = `
+    .pdf-picker-buttons {
+      display: flex !important;
+      gap: 8px !important;
+      justify-content: center !important;
+      flex-wrap: wrap !important;
+      margin-top: 8px !important;
+    }
+
+    .pdf-real-file-input {
+      display: none !important;
+    }
+
     .pdf-file-picker-helper {
       border: 0 !important;
       border-radius: 14px !important;
-      background: #eef2ea !important;
-      color: #26382b !important;
+      background: #8d9983 !important;
+      color: #fffdf8 !important;
       font-weight: 900 !important;
       padding: 10px 14px !important;
-      margin-top: 8px !important;
       cursor: pointer !important;
       width: fit-content !important;
       align-self: center !important;
+    }
+
+    .pdf-file-picker-helper.secondary {
+      background: #eef2ea !important;
+      color: #26382b !important;
     }
   `;
 
